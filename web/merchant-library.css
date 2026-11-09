@@ -460,7 +460,7 @@
     max-width: 100%;
   }
   .library-heading {
-    margin-bottom: 31px;
+    margin-bottom: 27px;
   }
   .library-heading .page-title {
     font-size: 29px;
@@ -475,8 +475,11 @@
     gap: 18px;
   }
   .library-list {
-    min-height: 280px;
+    min-height: 0;
     padding: 19px 16px;
+  }
+  .library-empty {
+    min-height: 96px;
   }
   .library-list-heading {
     align-items: stretch;
@@ -494,11 +497,13 @@
   }
   .library-readiness {
     min-height: 0;
-    padding: 20px;
+    padding: 18px;
   }
   .library-readiness ol {
-    gap: 12px;
-    margin-top: 17px;
+    gap: 8px;
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 20px;
   }
   .memory-drawer {
     width: 100%;

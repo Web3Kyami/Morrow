@@ -12,6 +12,40 @@
   el("search").value = params.get("q") || "";
   const menu = el("status-menu"),
     trigger = el("case-filter");
+  const mobileQueueTab = document.querySelector(
+    ".mobile-workspace-nav button[aria-controls='case-rail']",
+  );
+  const mobileViewport = matchMedia("(max-width: 767px)");
+  function labelCasePanel() {
+    const selectedTab = [
+      ...el("case-list").querySelectorAll("[role=tab]"),
+    ].find((tab) => tab.dataset.caseId === selected);
+    if (mobileViewport.matches)
+      el("case-panel").setAttribute("aria-labelledby", "preview-title");
+    else if (selectedTab)
+      el("case-panel").setAttribute("aria-labelledby", selectedTab.id);
+  }
+  mobileViewport.addEventListener("change", labelCasePanel);
+  function setMobileQueueOpen(open) {
+    if (!mobileViewport.matches) return;
+    const wasOpen = el("main").classList.contains("mobile-queue-open");
+    el("main").classList.toggle("mobile-queue-open", open);
+    mobileQueueTab.setAttribute("aria-expanded", String(open));
+    const behavior = matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? "auto"
+      : "smooth";
+    if (open)
+      requestAnimationFrame(() =>
+        el("case-rail").scrollIntoView({
+          block: "start",
+          behavior,
+        }),
+      );
+    else if (wasOpen)
+      requestAnimationFrame(() =>
+        el("case-panel").scrollIntoView({ block: "start", behavior }),
+      );
+  }
   const visible = (id, show) => {
     el(id).hidden = !show;
   };
@@ -121,14 +155,15 @@
     motion(el("case-content"), [{ opacity: 0 }, { opacity: 1 }], 140);
   }
   async function select(c) {
+    setMobileQueueOpen(false);
     selected = c.caseId;
     const run = ++caseRun;
     for (const tab of el("case-list").querySelectorAll("[role=tab]")) {
       const active = tab.dataset.caseId === selected;
       tab.setAttribute("aria-selected", String(active));
       tab.tabIndex = active ? 0 : -1;
-      if (active) el("case-panel").setAttribute("aria-labelledby", tab.id);
     }
+    labelCasePanel();
     el("case-panel").dataset.state = "loading";
     el("case-panel").setAttribute("aria-busy", "true");
     visible("case-content", false);
@@ -156,6 +191,7 @@
     visible("empty", !filtered.length);
     visible("case-panel", !!filtered.length);
     if (!filtered.length) {
+      if (mobileViewport.matches) setMobileQueueOpen(true);
       caseRun++;
       current = null;
       el("main").dataset.state = "empty";
@@ -388,6 +424,8 @@
   };
   el("clear").onclick = clear;
   el("clear-empty").onclick = clear;
+  mobileQueueTab.onclick = () =>
+    setMobileQueueOpen(mobileQueueTab.getAttribute("aria-expanded") !== "true");
   el("retry-queue").onclick = load;
   el("retry-case").onclick = () => select({ caseId: selected });
   el("preview-review").onclick = () =>

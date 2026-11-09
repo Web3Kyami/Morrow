@@ -1,4 +1,7 @@
 /* M01 32:2 desktop and 35:93 mobile. Each has its own content hierarchy. */
+.mobile-workspace-nav {
+  display: none;
+}
 .workspace {
   padding: 55px 75px 60px;
 }
@@ -475,6 +478,10 @@ summary {
     flex-wrap: nowrap;
     gap: 0;
   }
+  .merchant-case-page .nav a[href="/merchant/lessons"],
+  .merchant-case-page .nav a[href="/merchant/providers"] {
+    display: none;
+  }
   .merchant-desk .nav a,
   .merchant-desk #sign-out {
     flex: 0 0 auto;
@@ -485,7 +492,7 @@ summary {
     min-width: 0;
   }
   .workspace {
-    padding: 42px 20px 40px;
+    padding: 42px 20px calc(104px + env(safe-area-inset-bottom));
   }
   .workspace .page-title {
     font-size: 29px;
@@ -507,8 +514,57 @@ summary {
     border-radius: 17px;
   }
   .workspace .case-rail {
+    display: none;
+    order: 1;
     width: 100%;
     min-height: 0;
+  }
+  .workspace.mobile-queue-open .case-rail {
+    display: block;
+    scroll-margin-top: 16px;
+  }
+  .workspace.mobile-queue-open .case-panel {
+    display: none;
+  }
+  .workspace .case-panel {
+    order: 0;
+  }
+  .mobile-workspace-nav {
+    position: fixed;
+    z-index: 30;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-height: 64px;
+    padding: 8px 20px max(8px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .mobile-workspace-nav a,
+  .mobile-workspace-nav button {
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    min-height: 44px;
+    border-radius: 10px;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--muted);
+    font: 600 14px/20px var(--ui);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .mobile-workspace-nav a:hover,
+  .mobile-workspace-nav button:hover {
+    background: var(--navigation);
+    color: var(--primary);
+  }
+  .mobile-workspace-nav a[aria-current="page"],
+  .mobile-workspace-nav button[aria-current="page"] {
+    color: var(--primary);
   }
   .mobile-state {
     display: inline-flex;
@@ -557,7 +613,7 @@ summary {
     margin-top: 9px;
   }
   .case-actions {
-    margin-top: 48px;
+    margin-top: 30px;
   }
   .case-actions .btn:first-child {
     width: 100%;
