@@ -19,6 +19,11 @@ try {
     );
   await pool.query("GRANT USAGE ON SCHEMA morrow TO morrow_app");
   await pool.query("GRANT SELECT ON ALL TABLES IN SCHEMA morrow TO morrow_app");
+  // Identity subject hashes are available only through the narrow lookup;
+  // the application role cannot enumerate or alter Privy links.
+  await pool.query(
+    "REVOKE ALL ON TABLE morrow.merchant_privy_identities FROM morrow_app",
+  );
   await pool.query(
     "GRANT INSERT ON morrow.payment_checks,morrow.decisions,morrow.entitlements,morrow.repairs,morrow.case_events TO morrow_app",
   );
@@ -55,6 +60,9 @@ try {
   );
   await pool.query(
     "GRANT EXECUTE ON FUNCTION morrow.lookup_merchant_identity(text) TO morrow_app",
+  );
+  await pool.query(
+    "GRANT EXECUTE ON FUNCTION morrow.lookup_merchant_privy_identity(text,text) TO morrow_app",
   );
   await pool.query(
     "GRANT EXECUTE ON FUNCTION morrow.delete_merchant_session(text) TO morrow_app",

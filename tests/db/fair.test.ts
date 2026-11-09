@@ -73,7 +73,7 @@ test(
           throw new Error("NO_LIVE_TATUM");
         },
       }),
-      { demoEnabled: true },
+      { demoEnabled: true, fixtureLoginEnabled: true },
       undefined as never,
       new MerchantService(db),
       undefined as never,

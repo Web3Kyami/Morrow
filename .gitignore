@@ -1,5 +1,7 @@
 node_modules
 dist/
+/web/merchant-privy.js
+/web/privy-*.js
 coverage/
 .env
 .env.*

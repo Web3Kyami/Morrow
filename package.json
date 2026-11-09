@@ -8,18 +8,20 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "node --env-file-if-exists=.env --import tsx src/main.ts",
-    "build": "tsc -p tsconfig.build.json",
+    "dev": "pnpm build:auth && node --env-file-if-exists=.env --import tsx src/main.ts",
+    "build:auth": "vite build --config vite.config.ts",
+    "build": "pnpm build:auth && tsc -p tsconfig.build.json",
     "start": "node --env-file-if-exists=.env dist/main.js",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write src scripts tests web package.json tsconfig.json tsconfig.build.json pnpm-workspace.yaml README.md",
-    "format:check": "prettier --check src scripts tests web package.json tsconfig.json tsconfig.build.json pnpm-workspace.yaml README.md",
+    "format": "prettier --write src scripts tests web vite.config.ts package.json tsconfig.json tsconfig.build.json pnpm-workspace.yaml README.md",
+    "format:check": "prettier --check src scripts tests web vite.config.ts package.json tsconfig.json tsconfig.build.json pnpm-workspace.yaml README.md",
     "test": "node --import tsx --test tests/*.test.ts",
     "test:db": "node --env-file-if-exists=.env --import tsx scripts/test-db.ts",
     "verify": "pnpm format:check && pnpm typecheck && pnpm test && pnpm test:db && pnpm build",
     "env:check": "node --env-file-if-exists=.env --import tsx scripts/env-check.ts",
     "db:migrate": "node --env-file-if-exists=.env --import tsx scripts/migrate.ts",
     "db:runtime": "node --env-file-if-exists=.env --import tsx scripts/configure-runtime.ts",
+    "privy:link": "node --env-file-if-exists=.env --import tsx scripts/link-privy-identity.ts",
     "payment:reserve": "node --env-file-if-exists=.env --import tsx scripts/reserve-testnet.ts",
     "proof:testnet": "node --env-file-if-exists=.env --import tsx scripts/proof-testnet.ts",
     "proof:payment:testnet": "node --env-file-if-exists=.env --import tsx scripts/proof-testnet.ts payment",
@@ -32,16 +34,25 @@
     "@grpc/grpc-js": "^1.14.7",
     "@mysten-incubation/memwal": "^0.1.13",
     "@mysten/sui": "^2.39.1",
+    "@privy-io/node": "^0.38.0",
+    "@privy-io/react-auth": "^3.51.3",
     "@protobuf-ts/grpc-transport": "^2.11.1",
+    "@solana/kit": "^8.6.0",
     "fastify": "^5.12.8",
     "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
     "@types/pg": "^8.23.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
     "prettier": "^3.9.10",
     "tsx": "^4.23.15",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vite": "^7.3.7"
   }
 }

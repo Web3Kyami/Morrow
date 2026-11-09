@@ -6,6 +6,7 @@ import {
   scryptSync,
   timingSafeEqual,
 } from "node:crypto";
+import { verifyAccessToken } from "@privy-io/node";
 import { z } from "zod";
 import { tenantTransaction, type Database } from "./database.js";
 import { DomainError } from "./errors.js";
@@ -17,10 +18,10 @@ import {
 import { hash } from "./customer.js";
 
 /**
- * S5 merchant desk. Sign-in is a fixture credential verified server-side;
- * every read is scoped to the merchant's own tenant. Current authorization
- * outranks any agent suggestion or recalled lesson; this module never
- * approves or grants anything.
+ * Merchant sessions come from a verified Privy identity mapping or an
+ * explicitly enabled local fixture credential. Every read is scoped to the
+ * mapped tenant, and current authorization outranks any agent suggestion.
+ * This module never approves or grants anything.
  */
 
 export function hashPassword(password: string) {
@@ -58,7 +59,33 @@ function tokenHash(token: string) {
 }
 
 export class MerchantService {
-  constructor(private readonly pool: Database) {}
+  constructor(
+    private readonly pool: Database,
+    private readonly privy?: { appId: string; verificationKey: string },
+    private readonly verifyPrivyToken: typeof verifyAccessToken = verifyAccessToken,
+  ) {}
+
+  get privyAppId() {
+    return this.privy?.appId ?? null;
+  }
+
+  private async issueSession(tenantId: string, operatorId: string) {
+    const token = mintSessionToken();
+    await tenantTransaction(this.pool, tenantId, async (db) => {
+      const actor = actorSchema.parse({
+        tenantId,
+        operatorId,
+        role: "merchant",
+      });
+      await authorize(db, actor);
+      await db.query(
+        `INSERT INTO morrow.merchant_sessions(token_hash,tenant_id,operator_id,expires_at)
+         VALUES ($1,$2,$3,clock_timestamp()+interval '8 hours')`,
+        [tokenHash(token), tenantId, operatorId],
+      );
+    });
+    return { token, tenantId, operatorId };
+  }
 
   async login(email: string, password: string) {
     const { email: cleanEmail, password: cleanPassword } =
@@ -71,25 +98,49 @@ export class MerchantService {
     // Generic refusal either way; no tenant or identity facts leak.
     if (!row || !verifyPassword(cleanPassword, row.password_hash))
       throw new DomainError("INVALID_CREDENTIALS", 401);
-    const token = mintSessionToken();
-    await tenantTransaction(this.pool, row.tenant_id, async (db) => {
-      const operator = await authorize(db, {
-        tenantId: row.tenant_id,
-        operatorId: row.operator_id,
-        role: "merchant",
+    return this.issueSession(row.tenant_id, row.operator_id);
+  }
+
+  async loginWithPrivy(accessToken: string) {
+    if (!this.privy)
+      throw new DomainError("IDENTITY_PROVIDER_UNAVAILABLE", 503);
+    if (
+      accessToken.length > 8192 ||
+      !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(accessToken)
+    )
+      throw new DomainError("INVALID_CREDENTIALS", 401);
+
+    let claims: Awaited<ReturnType<typeof verifyAccessToken>>;
+    try {
+      claims = await this.verifyPrivyToken({
+        access_token: accessToken,
+        app_id: this.privy.appId,
+        verification_key: this.privy.verificationKey,
       });
-      void operator;
-      await db.query(
-        `INSERT INTO morrow.merchant_sessions(token_hash,tenant_id,operator_id,expires_at)
-         VALUES ($1,$2,$3,clock_timestamp()+interval '8 hours')`,
-        [tokenHash(token), row.tenant_id, row.operator_id],
-      );
-    });
-    return {
-      token,
-      tenantId: row.tenant_id as string,
-      operatorId: row.operator_id as string,
-    };
+    } catch {
+      // Provider/token details are deliberately not exposed or logged.
+      throw new DomainError("INVALID_CREDENTIALS", 401);
+    }
+    if (
+      claims.app_id !== this.privy.appId ||
+      claims.issuer !== "privy.io" ||
+      !claims.user_id
+    )
+      throw new DomainError("INVALID_CREDENTIALS", 401);
+
+    const subjectHash = createHash("sha256")
+      .update("morrow:privy-user:v1\0")
+      .update(this.privy.appId)
+      .update("\0")
+      .update(claims.user_id)
+      .digest("hex");
+    const found = await this.pool.query(
+      "SELECT tenant_id,operator_id FROM morrow.lookup_merchant_privy_identity($1,$2)",
+      [this.privy.appId, subjectHash],
+    );
+    const row = found.rows[0];
+    if (!row) throw new DomainError("INVALID_CREDENTIALS", 401);
+    return this.issueSession(row.tenant_id, row.operator_id);
   }
 
   async authenticate(token: string): Promise<Actor> {

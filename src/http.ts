@@ -70,6 +70,8 @@ export function createApp(
     merchantLessons?: typeof merchantLessonsFor;
     providerStatus?: (actor: Actor) => Promise<unknown>;
     demoJourney?: DemoJourneyService;
+    fixtureLoginEnabled?: boolean;
+    privyAppId?: string | null;
   },
   customer?: CustomerService,
   merchant?: MerchantService,
@@ -105,9 +107,13 @@ export function createApp(
         "default-src 'none'; frame-ancestors 'none'",
       );
     } else {
+      const loginWithPrivy =
+        request.url === "/merchant/login" && Boolean(options.privyAppId);
       reply.header(
         "Content-Security-Policy",
-        "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+        loginWithPrivy
+          ? "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://privy.io https://*.privy.io; font-src 'self' data: https://privy.io https://*.privy.io; connect-src 'self' https://privy.io https://*.privy.io wss://*.privy.io; frame-src https://privy.io https://*.privy.io; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+          : "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
       );
     }
     return payload;
@@ -215,7 +221,7 @@ export function createApp(
     return customer.status(caseId, match[1]!);
   });
 
-  // ---- S5 merchant desk (fixture sign-in, HttpOnly session cookie) ----
+  // ---- Merchant desk identity providers, HttpOnly session cookie ----
   const loginHits = new Map<string, number[]>();
   const loginAllowed = (ip: string) => {
     const now = Date.now();
@@ -238,12 +244,47 @@ export function createApp(
       password: z.string().min(1).max(200),
     })
     .strict();
+  app.get("/api/v1/merchant/auth/config", async () => ({
+    privy: {
+      enabled: Boolean(
+        options.privyAppId && options.privyAppId === merchant?.privyAppId,
+      ),
+      appId:
+        options.privyAppId && options.privyAppId === merchant?.privyAppId
+          ? options.privyAppId
+          : null,
+    },
+    fixtureLoginEnabled: options.fixtureLoginEnabled === true,
+  }));
   app.post("/api/v1/merchant/session", async (request, reply) => {
     if (!merchant) throw new DomainError("AUTHENTICATION_REQUIRED", 401);
+    if (!options.fixtureLoginEnabled)
+      throw new DomainError("FIXTURE_LOGIN_DISABLED", 503);
     if (!loginAllowed(request.ip))
       throw new DomainError("INTAKE_RATE_LIMITED", 429);
     const body = merchantSessionSchema.parse(request.body);
     const session = await merchant.login(body.email, body.password);
+    reply.header(
+      "Set-Cookie",
+      `${COOKIE_NAME}=${session.token}; HttpOnly; Path=/; SameSite=Strict; Max-Age=28800${secureCookie}`,
+    );
+    return { ok: true };
+  });
+  app.post("/api/v1/merchant/session/privy", async (request, reply) => {
+    if (
+      !merchant ||
+      !options.privyAppId ||
+      options.privyAppId !== merchant.privyAppId
+    )
+      throw new DomainError("IDENTITY_PROVIDER_UNAVAILABLE", 503);
+    if (!loginAllowed(request.ip))
+      throw new DomainError("INTAKE_RATE_LIMITED", 429);
+    if (request.body !== undefined) z.object({}).strict().parse(request.body);
+    const match = request.headers.authorization?.match(
+      /^Bearer ([A-Za-z0-9_.-]{20,8192})$/,
+    );
+    if (!match) throw new DomainError("INVALID_CREDENTIALS", 401);
+    const session = await merchant.loginWithPrivy(match[1]!);
     reply.header(
       "Set-Cookie",
       `${COOKIE_NAME}=${session.token}; HttpOnly; Path=/; SameSite=Strict; Max-Age=28800${secureCookie}`,

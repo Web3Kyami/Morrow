@@ -75,6 +75,7 @@ test(
       service,
       {
         demoEnabled: true,
+        fixtureLoginEnabled: true,
         providerStatus: async () => ({
           database: { state: "CONNECTED" },
           tatum: { state: "UNAVAILABLE", network: "testnet" },
@@ -286,7 +287,11 @@ test(
     const app = createApp(
       db,
       service,
-      { demoEnabled: true, merchantLessons: () => null },
+      {
+        demoEnabled: true,
+        fixtureLoginEnabled: true,
+        merchantLessons: () => null,
+      },
       undefined as never,
       merchant,
       undefined as never,

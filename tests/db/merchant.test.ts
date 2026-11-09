@@ -42,7 +42,7 @@ test(
     const app = createApp(
       db,
       service,
-      { demoEnabled: true },
+      { demoEnabled: true, fixtureLoginEnabled: true },
       undefined as never,
       new MerchantService(db),
     );
@@ -173,7 +173,7 @@ test(
     const app = createApp(
       db,
       service,
-      { demoEnabled: false },
+      { demoEnabled: false, fixtureLoginEnabled: true },
       undefined as never,
       new MerchantService(db),
     );

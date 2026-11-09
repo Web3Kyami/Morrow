@@ -9,9 +9,23 @@ const schema = z.object({
   SUI_PAYMENT_NETWORK: z.literal("testnet").default("testnet"),
   SESSION_COOKIE_SECURE: z.enum(["true", "false"]).default("true"),
   DEMO_ENABLED: z.enum(["true", "false"]).default("false"),
+  MERCHANT_FIXTURE_LOGIN_ENABLED: z.enum(["true", "false"]).default("false"),
+  PRIVY_APP_ID: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{8,128}$/)
+    .optional(),
+  PRIVY_VERIFICATION_KEY: z.string().min(1).optional(),
 });
 export function readConfig(env: NodeJS.ProcessEnv = process.env) {
-  return schema.parse(env);
+  const config = schema.parse(env);
+  if (Boolean(config.PRIVY_APP_ID) !== Boolean(config.PRIVY_VERIFICATION_KEY))
+    throw new Error("PRIVY_APP_ID_AND_VERIFICATION_KEY_REQUIRED_TOGETHER");
+  if (
+    config.MERCHANT_FIXTURE_LOGIN_ENABLED === "true" &&
+    env.NODE_ENV === "production"
+  )
+    throw new Error("FIXTURE_LOGIN_FORBIDDEN_IN_PRODUCTION");
+  return config;
 }
 
 export const memoryConfigSchema = z

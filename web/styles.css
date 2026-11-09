@@ -615,22 +615,6 @@ dt {
 .login-brand .brand img {
   filter: brightness(0) invert(1);
 }
-.login-story {
-  margin-top: 142px;
-}
-.login-story h2 {
-  font-size: clamp(30px, 3.2vw, 46px);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.025em;
-  margin: 0 0 52px;
-}
-.login-story p {
-  font-size: 20px;
-  line-height: 1.4;
-  margin: 36px 0 0;
-  max-width: 469px;
-}
 .login-main {
   padding: 174px 12% 50px 11%;
 }
@@ -653,10 +637,15 @@ dt {
   min-height: 54px;
   margin-top: 42px;
 }
-.login-form .hint {
+.login-main #privy-root .btn {
+  width: 100%;
+  min-height: 54px;
+  margin-top: 42px;
+}
+.login-main > .hint {
   margin-top: 30px;
 }
-.login-form .hint a {
+.login-main > .hint a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -830,17 +819,6 @@ dt {
   }
   .login-brand {
     padding: 20px;
-  }
-  .login-story {
-    margin-top: 30px;
-  }
-  .login-story h2 {
-    font-size: 30px;
-    margin-bottom: 24px;
-  }
-  .login-story p {
-    font-size: 16px;
-    margin-top: 20px;
   }
   .login-main {
     padding: 36px 20px;

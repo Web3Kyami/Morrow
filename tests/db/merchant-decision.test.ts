@@ -35,7 +35,7 @@ async function setup() {
   const app = createApp(
     db,
     service,
-    { demoEnabled: true },
+    { demoEnabled: true, fixtureLoginEnabled: true },
     undefined as never,
     new MerchantService(db),
     undefined as never,

@@ -31,6 +31,15 @@ try {
         },
       };
   const resolution = new ResolutionService(pool, payment);
+  const merchant = new MerchantService(
+    pool,
+    config.PRIVY_APP_ID && config.PRIVY_VERIFICATION_KEY
+      ? {
+          appId: config.PRIVY_APP_ID,
+          verificationKey: config.PRIVY_VERIFICATION_KEY,
+        }
+      : undefined,
+  );
   const provisioning = new DemoProvisioningService(
     pool,
     () =>
@@ -55,6 +64,8 @@ try {
     {
       demoEnabled: config.DEMO_ENABLED === "true",
       secureCookies: config.SESSION_COOKIE_SECURE === "true",
+      fixtureLoginEnabled: config.MERCHANT_FIXTURE_LOGIN_ENABLED === "true",
+      privyAppId: config.PRIVY_APP_ID ?? null,
       staticDir: new URL("../web/", import.meta.url).pathname,
       merchantLessons: (p, tenantId) => merchantLessonsFor(p, tenantId),
       providerStatus: (actor) => merchantProviderStatus(pool!, actor),
@@ -68,7 +79,7 @@ try {
       ),
     },
     new CustomerService(pool),
-    new MerchantService(pool),
+    merchant,
     investigation,
     fair,
     provisioning,
