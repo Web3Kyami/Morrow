@@ -133,58 +133,52 @@
         <p id="comparison-error" class="error-notice" role="alert" hidden></p>
         <p id="comparison-outcome" role="status" hidden></p>
       </section>
-      <section id="case-c" class="story-grid" hidden aria-label="Case C">
-        <article class="conversation">
-          <div class="customer-heading">
-            <span class="customer-avatar" aria-hidden="true">N</span
-            ><strong>Noor</strong>
-          </div>
-          <blockquote>
-            <span class="desktop-copy"
-              >The payment reached Morrow, but it does not match this
-              order.</span
-            >
-            <span class="mobile-copy"
-              >The payment does not match this order.</span
-            >
-          </blockquote>
-          <div class="morrow-heading">
-            <img src="/assets/morrow-logo-mark.svg" alt="" /><strong
-              >Morrow</strong
-            >
-          </div>
-          <p class="agent-bubble" id="case-c-message">
-            I’ll check the payment against this order. No access or refund will
-            be changed.
+      <section id="case-c" class="refusal-grid" hidden aria-label="Case C">
+        <article class="refusal-summary">
+          <span class="state-pill bad" id="case-c-badge"
+            >Payment not checked</span
+          >
+          <h2 id="case-c-title">No access change.</h2>
+          <p id="case-c-message">
+            Check the payment against this order. Access will stay unchanged.
           </p>
-        </article>
-        <aside class="next-action case-c-action">
-          <span class="state-pill warn" id="case-c-badge">Not checked</span>
-          <h2 id="case-c-title">Start with the payment.</h2>
-          <dl class="case-checks">
-            <div>
-              <dt>Payment</dt>
-              <dd id="case-c-payment" class="state-pill warn">Not checked</dd>
-            </div>
-            <div>
-              <dt>Access</dt>
-              <dd id="case-c-access" class="state-pill bad">Missing</dd>
-            </div>
-          </dl>
+          <div class="refusal-outcome" id="case-c-outcome">
+            No grant · No refund · Access unchanged
+          </div>
           <p id="case-c-error" class="error-notice" role="alert" hidden></p>
           <button id="case-c-action" class="btn" type="button">
-            Open Case C
+            Check payment
           </button>
+          <button id="continue-proof" class="btn" type="button" hidden>
+            Continue to proof
+          </button>
+        </article>
+        <aside class="mismatch-evidence" aria-labelledby="mismatch-heading">
+          <h2 id="mismatch-heading">What failed</h2>
+          <dl class="mismatch-facts">
+            <div>
+              <dt>Expected</dt>
+              <dd id="case-c-expected">Not checked</dd>
+            </div>
+            <div>
+              <dt>Observed</dt>
+              <dd id="case-c-observed">Not confirmed</dd>
+            </div>
+          </dl>
           <button
-            id="continue-proof"
+            id="inspect-mismatch"
             class="btn btn-secondary"
             type="button"
             hidden
           >
-            Continue to proof
+            Inspect mismatch
           </button>
         </aside>
       </section>
+      <p id="case-c-safety-note" class="case-c-safety-note" hidden>
+        A provider timeout is unknown, not a mismatch. Neither state permits an
+        automatic grant.
+      </p>
       <p class="scenario-note">
         Fictional scenario · Provider results are checked live.
       </p>
@@ -350,6 +344,35 @@ Verify the order and payment. If access is missing and policy permits, repair on
         <li>Confirm access before approving a reusable lesson.</li>
         <li>Compare a new case with and without that lesson.</li>
       </ol>
+      <button class="btn" type="button" data-close>Back to the case</button>
+    </dialog>
+    <dialog
+      id="mismatch-dialog"
+      class="journey-dialog mismatch-dialog"
+      aria-labelledby="mismatch-dialog-title"
+    >
+      <button
+        class="dialog-close text-button"
+        type="button"
+        data-close
+        aria-label="Close mismatch details"
+      >
+        ×
+      </button>
+      <span class="state-pill bad">Payment mismatch</span>
+      <h2 id="mismatch-dialog-title">Why the payment was refused</h2>
+      <p id="mismatch-dialog-copy"></p>
+      <dl class="mismatch-facts dialog-mismatch-facts">
+        <div>
+          <dt>Expected</dt>
+          <dd id="dialog-expected"></dd>
+        </div>
+        <div>
+          <dt>Observed</dt>
+          <dd id="dialog-observed"></dd>
+        </div>
+      </dl>
+      <p class="refusal-outcome">No grant · No refund · Access unchanged</p>
       <button class="btn" type="button" data-close>Back to the case</button>
     </dialog>
     <script src="/assets/app.js"></script>

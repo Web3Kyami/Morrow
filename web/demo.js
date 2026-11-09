@@ -2,7 +2,12 @@
 (() => {
   const { api, el, openDialog, closeDialog, setupDialog, busy, setFieldError } =
     window.Morrow;
-  const dialogs = [el("review-dialog"), el("lesson-dialog"), el("how-dialog")];
+  const dialogs = [
+    el("review-dialog"),
+    el("lesson-dialog"),
+    el("how-dialog"),
+    el("mismatch-dialog"),
+  ];
   dialogs.forEach(setupDialog);
   let credential = null,
     view = null,
@@ -139,15 +144,74 @@
     matchMedia("(max-width:700px)").matches
       ? "I’ll check payment and access first."
       : "I’ll check the payment and your access before suggesting a fix.";
+  const canonicalCoinType = (value) =>
+    typeof value === "string"
+      ? value.replace(/0x0*([0-9a-f]{1,64})(?=::)/gi, (_, address) => {
+          const normalized = address.replace(/^0+/, "").toLowerCase() || "0";
+          return `0x${normalized}`;
+        })
+      : null;
+  function caseCPayment() {
+    const detail = view?.caseC?.evidence;
+    const intent = detail?.intent;
+    const check = detail?.latestCheck;
+    const evidence = check?.evidence || {};
+    const changes = Array.isArray(evidence.balanceChanges)
+      ? evidence.balanceChanges.filter(
+          (change) =>
+            change.address === intent?.recipient &&
+            canonicalCoinType(change.coinType) ===
+              canonicalCoinType(intent?.coinType) &&
+            typeof change.amount === "string" &&
+            /^-?[0-9]{1,30}$/.test(change.amount) &&
+            BigInt(change.amount) > 0n,
+        )
+      : [];
+    const expected =
+      typeof intent?.amount === "string" && /^[0-9]{1,30}$/.test(intent.amount)
+        ? intent.amount
+        : null;
+    const observed = changes.length === 1 ? changes[0].amount : null;
+    const verdict = view?.caseC?.summary?.payment?.verdict || "NOT_CHECKED";
+    const verifiedMismatch =
+      verdict === "MISMATCH" &&
+      check?.reason === "RECIPIENT_ASSET_AMOUNT" &&
+      evidence.status === "SUCCESS" &&
+      evidence.network === intent?.network &&
+      evidence.digest === intent?.digest &&
+      evidence.sender === intent?.sender &&
+      expected !== null &&
+      observed !== null &&
+      expected !== observed &&
+      view.caseC.access === "MISSING" &&
+      view.caseC.repairs?.length === 0;
+    return {
+      verdict,
+      intent,
+      check,
+      evidence,
+      expected,
+      observed,
+      verifiedMismatch,
+      observedTransferCount: changes.length,
+    };
+  }
+  const formatMist = (amount) =>
+    amount === null
+      ? null
+      : `${new Intl.NumberFormat("en-US").format(BigInt(amount))} MIST`;
   function heading() {
     const small = matchMedia("(max-width:700px)").matches;
+    const caseC = caseCPayment();
     if (!view) el("agent-message").textContent = defaultReply();
     el("story-title").textContent =
       chapter === "B"
-        ? "Same problem. Different customer."
+        ? small
+          ? "Alex's case. Two runs."
+          : "Same problem. Different customer."
         : chapter === "C"
-          ? view?.caseC.summary.payment.verdict === "MISMATCH"
-            ? "This payment does not match the order."
+          ? caseC.verifiedMismatch
+            ? "An old fix isn't permission."
             : "Check this payment against its order."
           : view?.caseA.summary.access === "CONFIRMED"
             ? "Mira can open her course."
@@ -160,6 +224,10 @@
         : chapter === "C"
           ? "Noor · Layered Lessons · Order #1093"
           : "Layered Lessons · Order #1042";
+    if (chapter === "B")
+      el("case-b").querySelector(".comparison-contract").textContent = small
+        ? "Same data, policy, tools and permission."
+        : "Same data, policy and tools. Only memory retrieval changes.";
   }
   matchMedia("(max-width:700px)").addEventListener("change", render);
   function render() {
@@ -167,6 +235,8 @@
     el("case-a").hidden = chapter !== "A";
     el("case-b").hidden = chapter !== "B";
     el("case-c").hidden = chapter !== "C";
+    el("case-c-safety-note").hidden = chapter !== "C";
+    el("main").querySelector(".scenario-note").hidden = chapter === "C";
     for (const c of ["a", "b", "c"]) {
       el("chapter-" + c).classList.toggle(
         "active",
@@ -306,67 +376,89 @@
   }
   function renderC() {
     const job = view?.jobs?.find((item) => item.role === "C");
-    const summary = view?.caseC?.summary;
-    const verdict = summary?.payment?.verdict || "NOT_CHECKED";
-    const access = view?.caseC?.access || "MISSING";
-    const mismatch = verdict === "MISMATCH";
+    const payment = caseCPayment();
+    const { verdict, verifiedMismatch } = payment;
     const preparing =
       !!job &&
       ["QUEUED", "PREPARING", "RESERVED", "SUBMITTING"].includes(job.state);
-    el("case-c-payment").textContent =
-      verdict === "MISMATCH"
-        ? "Mismatch confirmed"
+    const failed = job?.state === "FAILED" || job?.state === "CANCELLED";
+    const badge = el("case-c-badge");
+    badge.textContent = verifiedMismatch
+      ? "Payment mismatch"
+      : verdict === "UNKNOWN"
+        ? "Payment unknown"
         : verdict === "MATCH"
-          ? "Matched"
-          : verdict === "UNKNOWN"
-            ? "Payment unknown"
-            : job?.state === "FAILED"
-              ? "Payment unavailable"
-              : job?.state === "CANCELLED"
-                ? "Payment cancelled"
-                : "Not checked";
-    el("case-c-payment").className =
-      "state-pill " + (mismatch ? "bad" : verdict === "MATCH" ? "ok" : "warn");
-    el("case-c-access").textContent =
-      access === "RESTORED" ? "Access present" : "Access missing";
-    el("case-c-access").className =
-      "state-pill " + (access === "RESTORED" ? "ok" : "bad");
-    el("case-c-badge").textContent = mismatch
-      ? "Safe refusal"
-      : !job
-        ? "Ready"
-        : preparing
-          ? "Payment pending"
-          : "Needs verification";
-    el("case-c-badge").className = "state-pill " + (mismatch ? "ok" : "warn");
-    el("case-c-title").textContent = mismatch
-      ? "No access was granted."
-      : job?.state === "FAILED" || job?.state === "CANCELLED"
-        ? "Payment could not be checked."
-        : "Start with the payment.";
-    el("case-c-message").textContent = mismatch
-      ? "The transaction succeeded, but its amount does not match this order. No repair or refund was made."
-      : "I’ll check the payment against this order. No access or refund will be changed.";
+          ? "Payment matched"
+          : failed
+            ? "Payment unavailable"
+            : preparing
+              ? "Payment pending"
+              : "Needs verification";
+    badge.className =
+      "state-pill " +
+      (verifiedMismatch ? "bad" : verdict === "MATCH" ? "ok" : "warn");
+    el("case-c-title").textContent = "No access change.";
+    const expected = formatMist(payment.expected);
+    const observed = formatMist(payment.observed);
+    el("case-c-message").textContent = verifiedMismatch
+      ? `The payment sent ${observed}; this order requires ${expected}.`
+      : verdict === "UNKNOWN"
+        ? "The provider did not confirm the transaction. Retry the check before taking action."
+        : verdict === "MATCH"
+          ? "The payment matches, but this case cannot grant access. No change was made."
+          : failed
+            ? "Payment preparation failed. Exit this demo and start a new one."
+            : preparing
+              ? "The payment is being prepared. No access or refund will be changed."
+              : "Check the payment against this order. No access or refund will be changed.";
+    el("case-c-expected").textContent = expected || "Not available";
+    el("case-c-observed").textContent =
+      observed ||
+      (verdict === "UNKNOWN"
+        ? "Not confirmed"
+        : payment.observedTransferCount > 1
+          ? "Multiple transfers"
+          : verdict === "NOT_CHECKED"
+            ? "Not checked"
+            : "No matching transfer");
     const action = el("case-c-action");
     action.textContent = !job
       ? "Open Case C"
       : preparing
         ? "Preparing payment…"
-        : mismatch
-          ? "Mismatch confirmed"
-          : job.state === "FAILED" || job.state === "CANCELLED"
-            ? "Payment unavailable"
-            : verdict === "UNKNOWN"
-              ? "Retry payment check"
+        : verdict === "UNKNOWN"
+          ? "Retry payment check"
+          : verdict === "MATCH"
+            ? "Payment matched"
+            : failed
+              ? "Payment unavailable"
               : "Check payment";
     action.disabled =
       working ||
       preparing ||
-      mismatch ||
-      job?.state === "FAILED" ||
-      job?.state === "CANCELLED";
-    el("continue-proof").hidden = !mismatch;
+      failed ||
+      verdict === "MATCH" ||
+      (verdict === "MISMATCH" && !verifiedMismatch);
+    action.hidden = verifiedMismatch;
+    el("inspect-mismatch").hidden = !verifiedMismatch;
+    el("continue-proof").hidden = !verifiedMismatch;
     el("continue-proof").disabled = working;
+    message(
+      "case-c-error",
+      failed
+        ? "This payment intent cannot be reused. Exit and start a new demo."
+        : verdict === "MISMATCH" && !verifiedMismatch
+          ? "The mismatch did not pass the evidence checks. No access changed; proof is unavailable."
+          : verdict === "MATCH"
+            ? "This payment matches the order. Case C proof requires a confirmed mismatch."
+            : "",
+    );
+    if (verifiedMismatch) {
+      el("mismatch-dialog-copy").textContent =
+        `The transaction succeeded, but the recipient received ${observed} instead of ${expected}. The order remains unchanged.`;
+      el("dialog-expected").textContent = expected;
+      el("dialog-observed").textContent = observed;
+    }
   }
   function schedule() {
     clearTimeout(timer);
@@ -794,6 +886,10 @@
     render();
   }
   el("chapter-c").onclick = openC;
+  el("inspect-mismatch").onclick = (event) => {
+    if (!caseCPayment().verifiedMismatch) return;
+    openDialog(el("mismatch-dialog"), event.currentTarget);
+  };
   el("case-c-action").onclick = async () => {
     if (!view?.jobs.some((job) => job.role === "C")) {
       await openC();

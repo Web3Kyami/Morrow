@@ -239,6 +239,126 @@
   font-size: 14px;
   line-height: 20px;
 }
+.refusal-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(330px, 0.92fr);
+  gap: 28px;
+  max-width: 1205px;
+}
+.refusal-summary,
+.mismatch-evidence {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  padding: 30px;
+}
+.refusal-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 366px;
+}
+.refusal-summary h2,
+.mismatch-evidence h2 {
+  margin: 28px 0 12px;
+  font-size: 29px;
+  line-height: 38px;
+  letter-spacing: -0.4px;
+  font-weight: 600;
+}
+.refusal-summary > p,
+.mismatch-evidence > p {
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 24px;
+}
+.refusal-summary > p {
+  margin: 0;
+  max-width: 490px;
+}
+.refusal-outcome {
+  width: 100%;
+  margin-top: 28px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 16px;
+  line-height: 23px;
+  font-weight: 600;
+}
+.refusal-summary .error-notice {
+  margin: 18px 0 0;
+}
+.refusal-summary .btn {
+  width: 100%;
+  min-height: 52px;
+  margin-top: auto;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.refusal-summary .refusal-outcome + .error-notice:not([hidden]) {
+  margin-bottom: 16px;
+}
+.mismatch-evidence {
+  min-height: 366px;
+  display: flex;
+  flex-direction: column;
+}
+.mismatch-evidence h2 {
+  margin: 0;
+}
+.mismatch-facts {
+  width: 100%;
+  margin: 36px 0 28px;
+}
+.mismatch-facts div {
+  padding: 0 0 18px;
+  margin: 0 0 18px;
+  border-bottom: 1px solid var(--border);
+}
+.mismatch-facts dt {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 21px;
+}
+.mismatch-facts dd {
+  margin: 7px 0 0;
+  font: 600 17px/24px var(--data);
+  overflow-wrap: anywhere;
+}
+.mismatch-evidence .btn {
+  width: 100%;
+  min-height: 52px;
+  margin-top: auto;
+}
+.case-c-safety-note {
+  max-width: 1205px;
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+.mismatch-dialog {
+  width: min(520px, calc(100% - 40px));
+}
+.mismatch-dialog > .state-pill {
+  margin-right: 40px;
+}
+.mismatch-dialog h2 {
+  margin-top: 24px;
+}
+.mismatch-dialog .mismatch-facts {
+  margin: 26px 0 22px;
+}
+.mismatch-dialog .refusal-outcome {
+  margin: 0 0 22px;
+}
+.mismatch-dialog > .btn {
+  width: 100%;
+  min-height: 52px;
+}
 .journey-dialog {
   width: min(568px, calc(100% - 40px));
   max-height: calc(100dvh - 40px);
@@ -469,6 +589,14 @@
   .story-grid {
     grid-template-columns: minmax(0, 1.3fr) minmax(300px, 1fr);
   }
+  .refusal-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr);
+    gap: 20px;
+  }
+  .refusal-summary,
+  .mismatch-evidence {
+    padding: 24px;
+  }
   .conversation {
     padding-right: 28px;
   }
@@ -558,6 +686,58 @@
   }
   .story-grid {
     display: block;
+  }
+  .refusal-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .refusal-summary,
+  .mismatch-evidence {
+    min-height: 0;
+    padding: 22px 20px;
+    border-radius: 17px;
+  }
+  .refusal-summary h2,
+  .mismatch-evidence h2 {
+    margin-top: 20px;
+    font-size: 25px;
+    line-height: 32px;
+  }
+  .mismatch-evidence h2 {
+    margin-top: 0;
+  }
+  .refusal-summary > p,
+  .mismatch-evidence > p {
+    font-size: 16px;
+    line-height: 22px;
+  }
+  .refusal-outcome {
+    margin-top: 22px;
+    padding: 13px 14px;
+    font-size: 15px;
+  }
+  .refusal-summary .btn {
+    margin-top: 22px;
+  }
+  .mismatch-facts {
+    margin: 25px 0 8px;
+  }
+  .mismatch-facts div {
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+  }
+  .mismatch-facts dd {
+    font-size: 15px;
+    line-height: 22px;
+  }
+  .mismatch-evidence .btn {
+    margin-top: 12px;
+  }
+  .case-c-safety-note {
+    margin-top: 18px;
+    font-size: 13px;
+    line-height: 19px;
   }
   .conversation {
     border-radius: 17px;
