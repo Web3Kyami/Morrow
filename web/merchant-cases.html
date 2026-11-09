@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link rel="icon" href="/assets/morrow-logo-mark.svg" type="image/svg+xml" />
+    <title>Cases · Morrow</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <link rel="stylesheet" href="/assets/workspace.css" />
+    <link rel="stylesheet" href="/assets/states.css" />
+  </head>
+  <body class="merchant-desk">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/"
+          ><img src="/assets/morrow-logo-mark.svg" alt="" />morrow</a
+        >
+        <nav class="nav" aria-label="Merchant workspace">
+          <a href="/merchant/cases" aria-current="page">Cases</a>
+          <a href="/merchant/lessons">Lessons</a>
+          <a href="/merchant/providers">Providers</a>
+          <button class="text-button" id="sign-out" type="button">Exit</button>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="page workspace" data-state="loading">
+      <header class="workspace-heading">
+        <h1 class="page-title">Who needs a decision?</h1>
+      </header>
+      <section id="queue-error" class="state-card" role="alert" hidden>
+        <h2>Cases couldn't be loaded</h2>
+        <p id="queue-error-text"></p>
+        <button id="retry-queue" class="btn btn-secondary" type="button">
+          Retry
+        </button>
+      </section>
+      <div
+        id="loading"
+        class="workspace-grid"
+        aria-label="Loading cases"
+        role="status"
+      >
+        <div class="card queue-skeleton skeleton" aria-hidden="true">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-person"><i></i><span></span></div>
+          <div class="skeleton-person"><i></i><span></span></div>
+          <div class="skeleton-person"><i></i><span></span></div>
+        </div>
+        <div class="card case-skeleton skeleton" aria-hidden="true">
+          <div class="skeleton-line large"></div>
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-block"></div>
+          <div class="skeleton-block short"></div>
+          <div class="skeleton-line medium"></div>
+        </div>
+      </div>
+      <div id="queue" class="workspace-grid" hidden>
+        <section
+          id="case-rail"
+          class="card case-rail"
+          aria-labelledby="cases-heading"
+        >
+          <div class="rail-heading">
+            <button
+              id="search-toggle"
+              class="rail-title"
+              type="button"
+              aria-expanded="false"
+              aria-controls="search-form"
+            >
+              Cases
+            </button>
+            <h2 id="cases-heading" class="sr-only">Cases</h2>
+            <button
+              id="case-filter"
+              class="filter-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              aria-controls="status-menu"
+            >
+              <span id="filter-label">All</span
+              ><img
+                src="/assets/chevron-down.svg"
+                width="15"
+                height="15"
+                alt=""
+              />
+            </button>
+          </div>
+          <div
+            id="status-menu"
+            class="filter-menu"
+            popover
+            role="listbox"
+            aria-label="Case status"
+          >
+            <button
+              type="button"
+              role="option"
+              data-filter="ALL"
+              aria-selected="true"
+            >
+              All cases</button
+            ><button
+              type="button"
+              role="option"
+              data-filter="REVIEW"
+              aria-selected="false"
+            >
+              Needs decision</button
+            ><button
+              type="button"
+              role="option"
+              data-filter="CHECK"
+              aria-selected="false"
+            >
+              Needs verification</button
+            ><button
+              type="button"
+              role="option"
+              data-filter="REFUSED"
+              aria-selected="false"
+            >
+              Payment mismatch</button
+            ><button
+              type="button"
+              role="option"
+              data-filter="DECLINED"
+              aria-selected="false"
+            >
+              Declined</button
+            ><button
+              type="button"
+              role="option"
+              data-filter="APPROVED"
+              aria-selected="false"
+            >
+              Approved</button
+            ><button
+              type="button"
+              role="option"
+              data-filter="RESTORED"
+              aria-selected="false"
+            >
+              Access present
+            </button>
+          </div>
+          <form id="search-form" class="queue-search" hidden>
+            <label class="field" for="search"
+              ><span class="label-text">Case or order reference</span
+              ><input id="search" type="text" autocomplete="off"
+            /></label>
+            <div class="actions">
+              <button class="btn btn-secondary" type="submit">Search</button
+              ><button class="text-button" type="button" id="clear">
+                Clear
+              </button>
+            </div>
+          </form>
+          <div id="empty" class="empty-case" role="status" hidden>
+            <h3>No cases yet</h3>
+            <p id="empty-text"></p>
+            <a id="empty-demo" class="btn btn-secondary" href="/demo" hidden
+              >View the demo</a
+            >
+            <button
+              class="btn btn-secondary"
+              type="button"
+              id="clear-empty"
+              hidden
+            >
+              Clear filters
+            </button>
+          </div>
+          <div
+            class="case-list"
+            id="case-list"
+            role="tablist"
+            aria-label="Cases"
+            aria-orientation="vertical"
+          ></div>
+        </section>
+        <section
+          id="case-panel"
+          class="card case-panel"
+          role="tabpanel"
+          tabindex="0"
+          data-state="loading"
+          aria-live="polite"
+        >
+          <div
+            id="case-loading"
+            class="case-skeleton skeleton"
+            aria-label="Loading case"
+            role="status"
+            hidden
+          >
+            <div class="skeleton-line large"></div>
+            <div class="skeleton-line medium"></div>
+            <div class="skeleton-block"></div>
+            <div class="skeleton-block short"></div>
+          </div>
+          <div id="case-error" class="inline-state" role="alert" hidden>
+            <h2>Case couldn't be loaded</h2>
+            <p id="case-error-text"></p>
+            <button class="btn btn-secondary" id="retry-case" type="button">
+              Retry case
+            </button>
+          </div>
+          <div id="case-content" hidden>
+            <span id="preview-state" class="chip warn mobile-state"></span>
+            <h2 id="preview-title">Access repair</h2>
+            <button
+              class="case-context order-details"
+              id="preview-context"
+              type="button"
+              aria-label="View order details"
+            ></button>
+            <div class="case-message">
+              <span class="case-avatar" aria-hidden="true">C</span>
+              <blockquote id="preview-issue"></blockquote>
+              <p id="message-empty" class="empty-message" hidden>
+                No customer message yet.
+              </p>
+            </div>
+            <div class="case-evidence">
+              <p id="preview-payment"></p>
+              <p id="preview-access"></p>
+            </div>
+            <div class="actions case-actions">
+              <button class="btn" id="preview-review" type="button">
+                Review repair</button
+              ><button
+                class="btn btn-secondary"
+                id="preview-details"
+                type="button"
+              >
+                View details
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+    <dialog
+      id="review-dialog"
+      class="review-dialog"
+      aria-labelledby="review-title"
+      aria-describedby="review-description"
+    >
+      <div class="dialog-heading">
+        <h2 id="review-title">Approve this repair?</h2>
+        <button
+          class="text-button"
+          type="button"
+          data-close
+          aria-label="Close repair review"
+        >
+          Close
+        </button>
+      </div>
+      <p id="review-description">Restore access to this order.</p>
+      <dl class="review-facts">
+        <div>
+          <dt>Payment</dt>
+          <dd id="review-payment"></dd>
+        </div>
+        <div>
+          <dt>Access</dt>
+          <dd id="review-access"></dd>
+        </div>
+      </dl>
+      <div class="remedy">
+        <span id="review-operation">Restore one entitlement</span>
+      </div>
+      <div id="correction-field" class="correction-fields" hidden>
+        <label class="field" for="correction-target">
+          <span class="label-text">What needs correction?</span>
+          <select
+            id="correction-target"
+            aria-describedby="correction-target-error"
+          >
+            <option value="">Choose a case detail</option>
+            <option value="ORDER_DETAILS">Order details</option>
+            <option value="PAYMENT_DETAILS">Payment details</option>
+            <option value="PRODUCT_ACCESS">Product access</option>
+            <option value="CUSTOMER_MESSAGE">Customer message</option>
+          </select>
+          <span class="field-error" id="correction-target-error"></span>
+        </label>
+        <label class="field" for="correction-note">
+          <span class="label-text">Why does it need correction?</span>
+          <textarea
+            id="correction-note"
+            rows="3"
+            maxlength="500"
+            aria-describedby="correction-note-error"
+          ></textarea>
+          <span class="field-error" id="correction-note-error"></span>
+        </label>
+      </div>
+      <div
+        id="review-progress"
+        class="operation-state"
+        role="status"
+        hidden
+      ></div>
+      <p class="field-error" id="review-error" role="alert" hidden></p>
+      <div class="dialog-actions">
+        <button class="text-button danger" type="button" id="reject-btn">
+          Reject</button
+        ><button class="btn btn-secondary" type="button" id="correct-btn">
+          Request correction</button
+        ><button class="btn" type="button" id="submit-correction" hidden>
+          Send for correction</button
+        ><button
+          class="btn btn-secondary"
+          type="button"
+          id="close-review"
+          data-close
+        >
+          Cancel</button
+        ><button class="btn" id="confirm-approve" type="button">
+          Approve &amp; check</button
+        ><button class="btn" id="retry-repair" type="button" hidden>
+          Recheck access
+        </button>
+      </div>
+    </dialog>
+    <dialog
+      id="evidence-dialog"
+      class="evidence-drawer"
+      aria-labelledby="evidence-title"
+    >
+      <div class="dialog-heading">
+        <h2 id="evidence-title">Case details</h2>
+        <button class="text-button" type="button" data-close>Close</button>
+      </div>
+      <div id="evidence-content"></div>
+      <div class="actions evidence-actions">
+        <button class="btn btn-secondary" id="check-payment" type="button">
+          Check payment</button
+        ><button class="btn btn-secondary" id="open-lesson" type="button">
+          Review lesson
+        </button>
+      </div>
+      <p id="evidence-error" class="field-error" role="alert" hidden></p>
+      <details class="case-activity">
+        <summary>Activity</summary>
+        <div id="case-activity"></div>
+      </details>
+      <details class="case-comparison">
+        <summary>Read-only plan comparison</summary>
+        <div class="grid-2">
+          <div>
+            <button class="btn btn-secondary" id="fair-off-btn" type="button">
+              Run memory OFF
+            </button>
+            <p id="fair-off"></p>
+          </div>
+          <div>
+            <button class="btn btn-secondary" id="fair-on-btn" type="button">
+              Run memory ON
+            </button>
+            <p id="fair-on"></p>
+          </div>
+        </div>
+        <p class="field-error" id="fair-error" role="alert" hidden></p>
+      </details>
+    </dialog>
+    <dialog id="lesson-dialog" aria-labelledby="lesson-title">
+      <div class="dialog-heading">
+        <h2 id="lesson-title">Review what Morrow remembers</h2>
+        <button class="text-button" type="button" data-close>Close</button>
+      </div>
+      <div id="lesson-content"></div>
+      <form id="lesson-editor" hidden>
+        <label class="field" for="lesson-category">
+          <span class="label-text">Product category</span>
+          <select id="lesson-category" aria-describedby="lesson-category-error">
+            <option value="">Choose a category</option>
+            <option value="course">Course</option>
+            <option value="download">Download</option>
+            <option value="subscription">Subscription</option>
+            <option value="pass">Pass</option>
+            <option value="service">Service</option>
+          </select>
+          <span class="field-error" id="lesson-category-error"></span>
+        </label>
+        <fieldset>
+          <legend>Reusable steps</legend>
+          <div id="lesson-procedures"></div>
+          <span class="field-error" id="lesson-procedure-error"></span>
+        </fieldset>
+        <fieldset>
+          <legend>Applies to</legend>
+          <div id="lesson-applicability"></div>
+          <span class="field-error" id="lesson-scope-error"></span>
+        </fieldset>
+      </form>
+      <p id="lesson-state" role="status"></p>
+      <p id="lesson-error" class="field-error" role="alert" hidden></p>
+      <div class="actions">
+        <button class="btn btn-secondary" id="lesson-save" type="button" hidden>
+          Save draft</button
+        ><button class="btn" id="lesson-approve" type="button" hidden>
+          Approve lesson</button
+        ><button class="btn" id="lesson-advance" type="button" hidden>
+          Store lesson</button
+        ><button
+          class="btn btn-secondary"
+          id="lesson-recall"
+          type="button"
+          hidden
+        >
+          Verify recall
+        </button>
+      </div>
+    </dialog>
+    <script src="/assets/app.js"></script>
+    <script src="/assets/case-actions.js"></script>
+    <script src="/assets/merchant-cases.js"></script>
+  </body>
+</html>

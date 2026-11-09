@@ -1,0 +1,9 @@
+*.md
+design/
+references/
+templates/
+.agents/
+.morrow/
+.env*
+tests/
+scripts/

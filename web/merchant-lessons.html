@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link rel="icon" href="/assets/morrow-logo-mark.svg" type="image/svg+xml" />
+    <title>Lessons · Morrow</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <link rel="stylesheet" href="/assets/workspace.css" />
+    <link rel="stylesheet" href="/assets/states.css" />
+    <link rel="stylesheet" href="/assets/merchant-library.css" />
+  </head>
+  <body class="merchant-desk">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/"
+          ><img src="/assets/morrow-logo-mark.svg" alt="" />morrow</a
+        >
+        <nav class="nav" aria-label="Merchant workspace">
+          <a href="/merchant/cases">Cases</a>
+          <a href="/merchant/lessons" aria-current="page">Lessons</a>
+          <a href="/merchant/providers">Providers</a>
+          <button class="text-button" id="sign-out" type="button">Exit</button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="page library-page" data-state="loading">
+      <header class="library-heading">
+        <h1 class="page-title">What has Morrow learned?</h1>
+        <p>Only approved, sanitized procedures can be reused.</p>
+      </header>
+
+      <div
+        id="library-loading"
+        class="library-layout"
+        role="status"
+        aria-label="Loading lessons"
+      >
+        <section class="card library-list skeleton" aria-hidden="true">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-block"></div>
+          <div class="skeleton-block"></div>
+          <div class="skeleton-block short"></div>
+        </section>
+        <aside class="card library-aside skeleton" aria-hidden="true">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-block short"></div>
+        </aside>
+      </div>
+
+      <section id="library-error" class="state-card" role="alert" hidden>
+        <h2>Lessons couldn't be loaded</h2>
+        <p id="library-error-text"></p>
+        <button id="retry-library" class="btn btn-secondary" type="button">
+          Retry
+        </button>
+      </section>
+
+      <div id="library-content" class="library-layout" hidden>
+        <section class="card library-list" aria-labelledby="lessons-heading">
+          <div class="library-list-heading">
+            <h2 id="lessons-heading">Merchant lessons</h2>
+            <label class="library-search">
+              <span class="sr-only">Search lessons</span>
+              <input
+                id="lesson-search"
+                type="search"
+                placeholder="Search lessons"
+                autocomplete="off"
+              />
+            </label>
+          </div>
+          <p
+            id="library-status"
+            class="sr-only"
+            role="status"
+            aria-live="polite"
+          ></p>
+          <div id="lesson-rows" class="lesson-rows"></div>
+          <p id="lesson-empty" class="library-empty" role="status" hidden>
+            No lessons have been approved yet.
+          </p>
+          <p id="lesson-no-results" class="library-empty" role="status" hidden>
+            No lessons match this search.
+          </p>
+        </section>
+
+        <aside class="library-aside">
+          <section class="card library-readiness">
+            <h2>When is a lesson ready?</h2>
+            <ol>
+              <li>Merchant approves a sanitized procedure</li>
+              <li>Walrus Testnet confirms a completed job and blob</li>
+              <li>A fresh session recalls it within current policy</li>
+            </ol>
+          </section>
+          <a
+            class="btn btn-secondary library-provider-link"
+            href="/merchant/providers"
+            >Inspect memory status</a
+          >
+        </aside>
+      </div>
+    </main>
+
+    <dialog
+      id="lesson-details"
+      class="memory-drawer"
+      aria-labelledby="memory-title"
+    >
+      <div class="memory-drawer-head">
+        <h2 id="memory-title">Lesson status</h2>
+        <button
+          class="text-button"
+          type="button"
+          data-close
+          aria-label="Close lesson details"
+        >
+          ×
+        </button>
+      </div>
+      <dl id="memory-details" class="memory-details"></dl>
+      <button class="btn btn-secondary memory-close" type="button" data-close>
+        Close details
+      </button>
+    </dialog>
+
+    <script src="/assets/app.js"></script>
+    <script src="/assets/merchant-lessons.js"></script>
+  </body>
+</html>

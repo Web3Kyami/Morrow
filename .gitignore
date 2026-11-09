@@ -1,0 +1,22 @@
+node_modules
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+.vercel/
+*.log
+# Private implementation handoff and continuation records
+/*.md
+!/README.md
+/design/
+/references/
+/templates/
+/MANIFEST.sha256
+/SOURCE-INTEGRITY.md
+/.agents/
+/.morrow/
+
+# Local design-tool state
+.impeccable/
+.taste-skill/

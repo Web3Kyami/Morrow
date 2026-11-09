@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link rel="icon" href="/assets/morrow-logo-mark.svg" type="image/svg+xml" />
+    <title>Resolve · Morrow</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <link rel="stylesheet" href="/assets/journey.css" />
+    <link rel="stylesheet" href="/assets/states.css" />
+  </head>
+  <body class="demo-journey">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/"
+          ><img src="/assets/morrow-logo-mark.svg" alt="" />morrow</a
+        >
+        <nav class="nav" aria-label="Primary">
+          <button id="how" class="text-button" type="button">
+            How it works</button
+          ><button id="exit" class="text-button" type="button">
+            Exit demo
+          </button>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="journey-page">
+      <nav class="chapters" aria-label="Demo chapters">
+        <button
+          id="chapter-a"
+          type="button"
+          class="chapter active"
+          aria-current="step"
+        >
+          <span>A</span> Resolve</button
+        ><button id="chapter-b" type="button" class="chapter" disabled>
+          <span>B</span> Remember</button
+        ><button id="chapter-c" type="button" class="chapter" disabled>
+          <span>C</span> Refuse</button
+        ><button id="chapter-proof" type="button" class="chapter" disabled>
+          <span aria-hidden="true">✓</span> Proof
+        </button>
+      </nav>
+      <header class="journey-heading">
+        <h1 id="story-title">Mira paid. Her course is locked.</h1>
+        <p id="story-context">Layered Lessons · Order #1042</p>
+      </header>
+      <section id="case-a" class="story-grid" aria-label="Case A">
+        <article class="conversation">
+          <div class="customer-heading">
+            <span class="customer-avatar" aria-hidden="true">M</span
+            ><strong>Mira</strong>
+          </div>
+          <blockquote>
+            <span class="desktop-copy"
+              >I paid for my course, but it’s still locked.<br />Can you help me
+              get in?</span
+            ><span class="mobile-copy"
+              >I paid for the course,<br />but it’s still locked.</span
+            >
+          </blockquote>
+          <div class="morrow-heading">
+            <img src="/assets/morrow-logo-mark.svg" alt="" /><strong
+              >Morrow</strong
+            >
+          </div>
+          <p class="agent-bubble" id="agent-message">
+            I’ll check the payment and your access before suggesting a fix.
+          </p>
+        </article>
+        <aside class="next-action">
+          <span class="state-pill warn" id="case-badge"
+            >Needs verification</span
+          >
+          <h2 id="action-title">Start with the payment.</h2>
+          <dl class="case-checks">
+            <div>
+              <dt>Payment</dt>
+              <dd id="payment-state" class="state-pill warn">
+                Checking needed
+              </dd>
+            </div>
+            <div>
+              <dt>Access</dt>
+              <dd id="access-state" class="state-pill bad">Missing</dd>
+            </div>
+          </dl>
+          <p id="action-note" class="action-note" hidden></p>
+          <p id="journey-error" class="error-notice" role="alert" hidden></p>
+          <button id="primary-action" class="btn" type="button">
+            Check payment
+          </button>
+        </aside>
+      </section>
+      <section id="case-b" hidden aria-label="Case B">
+        <p class="comparison-contract">
+          Same data, policy and tools. Only memory retrieval changes.
+        </p>
+        <div class="comparison-grid">
+          <article class="comparison-lane">
+            <span class="state-pill neutral">Memory OFF</span>
+            <h2>Investigate from scratch</h2>
+            <ol>
+              <li>Verify this order</li>
+              <li>Read current entitlement</li>
+              <li>Choose a safe next step</li>
+            </ol>
+            <p class="lane-result" id="off-result">
+              Baseline result · not yet measured
+            </p>
+            <button id="run-off" class="btn btn-secondary" type="button">
+              Run without memory
+            </button>
+          </article>
+          <article class="comparison-lane">
+            <span class="state-pill plum">Memory ON</span>
+            <h2>Investigate with a lesson</h2>
+            <ol>
+              <li>Verify this same order</li>
+              <li>Retrieve scoped lesson</li>
+              <li>Check lesson against current policy</li>
+            </ol>
+            <p class="lane-result" id="on-result">No result yet.</p>
+            <button id="run-on" class="btn" type="button" disabled>
+              Run after baseline
+            </button>
+          </article>
+        </div>
+        <p id="comparison-error" class="error-notice" role="alert" hidden></p>
+        <p id="comparison-outcome" role="status" hidden></p>
+      </section>
+      <section id="case-c" class="story-grid" hidden aria-label="Case C">
+        <article class="conversation">
+          <div class="customer-heading">
+            <span class="customer-avatar" aria-hidden="true">N</span
+            ><strong>Noor</strong>
+          </div>
+          <blockquote>
+            <span class="desktop-copy"
+              >The payment reached Morrow, but it does not match this
+              order.</span
+            >
+            <span class="mobile-copy"
+              >The payment does not match this order.</span
+            >
+          </blockquote>
+          <div class="morrow-heading">
+            <img src="/assets/morrow-logo-mark.svg" alt="" /><strong
+              >Morrow</strong
+            >
+          </div>
+          <p class="agent-bubble" id="case-c-message">
+            I’ll check the payment against this order. No access or refund will
+            be changed.
+          </p>
+        </article>
+        <aside class="next-action case-c-action">
+          <span class="state-pill warn" id="case-c-badge">Not checked</span>
+          <h2 id="case-c-title">Start with the payment.</h2>
+          <dl class="case-checks">
+            <div>
+              <dt>Payment</dt>
+              <dd id="case-c-payment" class="state-pill warn">Not checked</dd>
+            </div>
+            <div>
+              <dt>Access</dt>
+              <dd id="case-c-access" class="state-pill bad">Missing</dd>
+            </div>
+          </dl>
+          <p id="case-c-error" class="error-notice" role="alert" hidden></p>
+          <button id="case-c-action" class="btn" type="button">
+            Open Case C
+          </button>
+          <button
+            id="continue-proof"
+            class="btn btn-secondary"
+            type="button"
+            hidden
+          >
+            Continue to proof
+          </button>
+        </aside>
+      </section>
+      <p class="scenario-note">
+        Fictional scenario · Provider results are checked live.
+      </p>
+    </main>
+    <dialog
+      id="review-dialog"
+      class="journey-dialog"
+      aria-labelledby="review-title"
+    >
+      <button
+        class="dialog-close text-button"
+        type="button"
+        data-close
+        aria-label="Close review"
+      >
+        ×
+      </button>
+      <p class="dialog-step" id="review-step">Step 1 of 3</p>
+      <div class="step-bars" id="review-bars" aria-hidden="true">
+        <i class="active"></i><i></i><i></i>
+      </div>
+      <h2 id="review-title">Approve this repair?</h2>
+      <p id="review-description">Restore access to this order. No refund.</p>
+      <dl class="review-facts">
+        <div>
+          <dt>Payment matched to this order</dt>
+          <dd class="state-pill ok">Checked</dd>
+        </div>
+        <div>
+          <dt>Access</dt>
+          <dd class="state-pill bad" id="review-access">Missing</dd>
+        </div>
+      </dl>
+      <div class="repair-operation" id="review-operation">
+        Restore one course entitlement
+      </div>
+      <p id="review-error" class="error-notice" role="alert" hidden></p>
+      <p id="review-progress" role="status" hidden></p>
+      <div class="dialog-actions">
+        <button id="reject" class="text-button danger" type="button">
+          Reject</button
+        ><button
+          id="cancel-review"
+          class="btn btn-secondary"
+          type="button"
+          data-close
+        >
+          Cancel</button
+        ><button id="approve-repair" class="btn" type="button">
+          Approve &amp; check</button
+        ><button id="review-remember" class="btn" type="button" hidden>
+          Remember this fix
+        </button>
+      </div>
+    </dialog>
+    <dialog
+      id="lesson-dialog"
+      class="journey-dialog"
+      aria-labelledby="lesson-title"
+    >
+      <button
+        class="dialog-close text-button"
+        type="button"
+        data-close
+        aria-label="Close lesson"
+      >
+        ×
+      </button>
+      <p class="dialog-step" id="lesson-step">Step 1 of 3</p>
+      <div class="step-bars" id="lesson-bars" aria-hidden="true">
+        <i class="active"></i><i></i><i></i>
+      </div>
+      <h2 id="lesson-title">Remember this fix?</h2>
+      <div id="lesson-review">
+        <label class="field"
+          >Reusable lesson<textarea id="lesson-preview" rows="3" readonly>
+Verify the order and payment. If access is missing and policy permits, repair once and read back.</textarea>
+        </label>
+        <p class="lesson-scope" id="lesson-scope">
+          Applies to courses and downloads.
+        </p>
+        <span class="state-pill ok">No customer data</span>
+        <p class="source-readback">Source: confirmed entitlement readback.</p>
+      </div>
+      <form id="lesson-editor" hidden>
+        <fieldset>
+          <legend>Reusable steps</legend>
+          <div id="procedure-options"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Applies to</legend>
+          <label class="check-option"
+            ><input id="scope-course" type="checkbox" checked />Courses</label
+          ><label class="check-option"
+            ><input
+              id="scope-download"
+              type="checkbox"
+              checked
+            />Downloads</label
+          >
+        </fieldset>
+        <p id="draft-error" class="error-notice" role="alert" hidden></p>
+        <div class="dialog-actions">
+          <button id="cancel-edit" class="btn btn-secondary" type="button">
+            Cancel</button
+          ><button id="save-draft" class="btn" type="submit">
+            Save draft for review
+          </button>
+        </div>
+      </form>
+      <section id="lesson-storage" hidden>
+        <span id="storage-state" class="state-pill warn">Queued</span>
+        <p id="storage-message" role="status">The approved lesson is queued.</p>
+        <details>
+          <summary>Storage evidence</summary>
+          <dl class="storage-evidence">
+            <div>
+              <dt>Network</dt>
+              <dd>Walrus Testnet</dd>
+            </div>
+            <div>
+              <dt>Job</dt>
+              <dd id="storage-job">Waiting</dd>
+            </div>
+            <div>
+              <dt>Blob</dt>
+              <dd id="storage-blob">Waiting</dd>
+            </div>
+          </dl>
+        </details>
+      </section>
+      <p id="lesson-error" class="error-notice" role="alert" hidden></p>
+      <div id="lesson-actions" class="dialog-actions">
+        <button id="edit-lesson" class="btn btn-secondary" type="button">
+          Edit lesson</button
+        ><button id="approve-lesson" class="btn" type="button">
+          Approve &amp; save</button
+        ><button
+          id="retry-lesson"
+          class="btn btn-secondary"
+          type="button"
+          hidden
+        >
+          Retry storage</button
+        ><button id="open-b" class="btn" type="button" hidden>
+          Open Case B
+        </button>
+      </div>
+    </dialog>
+    <dialog id="how-dialog" class="journey-dialog" aria-labelledby="how-title">
+      <button
+        class="dialog-close text-button"
+        type="button"
+        data-close
+        aria-label="Close"
+      >
+        ×
+      </button>
+      <h2 id="how-title">A fix you can check.</h2>
+      <ol class="how-steps">
+        <li>Verify the order and payment.</li>
+        <li>Review the proposed repair.</li>
+        <li>Confirm access before approving a reusable lesson.</li>
+        <li>Compare a new case with and without that lesson.</li>
+      </ol>
+      <button class="btn" type="button" data-close>Back to the case</button>
+    </dialog>
+    <script src="/assets/app.js"></script>
+    <script src="/assets/demo.js"></script>
+  </body>
+</html>

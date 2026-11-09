@@ -1,0 +1,47 @@
+{
+  "name": "morrow",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.11.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --import tsx src/main.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node --env-file-if-exists=.env dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write src scripts tests web package.json tsconfig.json tsconfig.build.json pnpm-workspace.yaml README.md",
+    "format:check": "prettier --check src scripts tests web package.json tsconfig.json tsconfig.build.json pnpm-workspace.yaml README.md",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "test:db": "node --env-file-if-exists=.env --import tsx scripts/test-db.ts",
+    "verify": "pnpm format:check && pnpm typecheck && pnpm test && pnpm test:db && pnpm build",
+    "env:check": "node --env-file-if-exists=.env --import tsx scripts/env-check.ts",
+    "db:migrate": "node --env-file-if-exists=.env --import tsx scripts/migrate.ts",
+    "db:runtime": "node --env-file-if-exists=.env --import tsx scripts/configure-runtime.ts",
+    "payment:reserve": "node --env-file-if-exists=.env --import tsx scripts/reserve-testnet.ts",
+    "proof:testnet": "node --env-file-if-exists=.env --import tsx scripts/proof-testnet.ts",
+    "proof:payment:testnet": "node --env-file-if-exists=.env --import tsx scripts/proof-testnet.ts payment",
+    "proof:memory:testnet": "node --env-file-if-exists=.env --import tsx scripts/proof-testnet.ts memory",
+    "proof:memory:recall": "node --env-file-if-exists=.env --import tsx scripts/proof-testnet.ts recall",
+    "proof:mainnet": "node --env-file-if-exists=.env --import tsx scripts/proof-mainnet.ts",
+    "demo:worker": "flock -n /root/.config/kyami/testnet-wallets/locks/morrow-demo-worker.lock node --env-file-if-exists=.env --import tsx scripts/demo-worker.ts"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.14.7",
+    "@mysten-incubation/memwal": "^0.1.13",
+    "@mysten/sui": "^2.39.1",
+    "@protobuf-ts/grpc-transport": "^2.11.1",
+    "fastify": "^5.12.8",
+    "pg": "^8.23.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/pg": "^8.23.1",
+    "prettier": "^3.9.10",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3"
+  }
+}

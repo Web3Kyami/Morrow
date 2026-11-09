@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link rel="icon" href="/assets/morrow-logo-mark.svg" type="image/svg+xml" />
+    <title>Providers · Morrow</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <link rel="stylesheet" href="/assets/workspace.css" />
+    <link rel="stylesheet" href="/assets/states.css" />
+    <link rel="stylesheet" href="/assets/merchant-library.css" />
+  </head>
+  <body class="merchant-desk">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/"
+          ><img src="/assets/morrow-logo-mark.svg" alt="" />morrow</a
+        >
+        <nav class="nav" aria-label="Merchant workspace">
+          <a href="/merchant/cases">Cases</a>
+          <a href="/merchant/lessons">Lessons</a>
+          <a href="/merchant/providers" aria-current="page">Providers</a>
+          <button class="text-button" id="sign-out" type="button">Exit</button>
+        </nav>
+      </div>
+    </header>
+
+    <main
+      id="main"
+      class="page library-page provider-page"
+      data-state="loading"
+    >
+      <header class="library-heading provider-heading">
+        <h1 class="page-title">Can this case be verified?</h1>
+        <button id="retry-providers" class="btn btn-secondary" type="button">
+          Refresh status
+        </button>
+      </header>
+
+      <div
+        id="provider-loading"
+        class="provider-cards"
+        role="status"
+        aria-label="Checking provider status"
+      >
+        <section class="card provider-card skeleton" aria-hidden="true">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line"></div>
+        </section>
+        <section class="card provider-card skeleton" aria-hidden="true">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line"></div>
+        </section>
+        <section class="card provider-card skeleton" aria-hidden="true">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line"></div>
+        </section>
+      </div>
+      <section id="provider-error" class="state-card" role="alert" hidden>
+        <h2>Provider status couldn't be loaded</h2>
+        <p id="provider-error-text"></p>
+        <button
+          id="retry-provider-error"
+          class="btn btn-secondary"
+          type="button"
+        >
+          Retry
+        </button>
+      </section>
+
+      <section
+        id="provider-content"
+        class="provider-cards"
+        hidden
+        aria-label="Provider status"
+      >
+        <article class="card provider-card">
+          <div class="provider-card-heading">
+            <h2>Tatum / Sui payment</h2>
+            <span id="tatum-state" class="merchant-status"></span>
+          </div>
+          <p id="tatum-detail"></p>
+          <p class="provider-evidence" id="tatum-evidence"></p>
+        </article>
+        <article class="card provider-card">
+          <div class="provider-card-heading">
+            <h2>Orders and entitlements</h2>
+            <span id="database-state" class="merchant-status"></span>
+          </div>
+          <p>
+            Database reachable. Each repair still needs its own order-bound
+            access readback.
+          </p>
+        </article>
+        <article class="card provider-card">
+          <div class="provider-card-heading">
+            <h2>Walrus Memory <span id="walrus-network">Testnet</span></h2>
+            <span id="walrus-state" class="merchant-status"></span>
+          </div>
+          <p id="walrus-detail"></p>
+          <p id="walrus-evidence" class="provider-evidence"></p>
+          <a href="/merchant/lessons">Inspect lesson records</a>
+        </article>
+        <p class="provider-safety">
+          Provider status unavailable means safe retry or escalation. It never
+          grants access.
+        </p>
+      </section>
+      <p id="provider-checked" class="provider-checked" hidden></p>
+    </main>
+
+    <script src="/assets/app.js"></script>
+    <script src="/assets/merchant-providers.js"></script>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+.git
+node_modules
+dist
+.env*
+*.md
+design
+references
+templates
+.agents
+.morrow

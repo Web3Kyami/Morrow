@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link rel="icon" href="/assets/morrow-logo-mark.svg" type="image/svg+xml" />
+    <title>Let's find your access. · Morrow</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <link rel="stylesheet" href="/assets/states.css" />
+  </head>
+  <body class="help-page">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/"
+          ><img src="/assets/morrow-logo-mark.svg" alt="" />morrow</a
+        >
+        <nav class="nav" aria-label="Primary">
+          <a href="/help">Cases</a><a href="/demo">Explore demo</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="page help-layout">
+      <section class="help-intro">
+        <h1 class="page-title">Let's find your access.</h1>
+      </section>
+      <div class="help-form-column">
+        <div id="form-error" class="notice error" role="alert" hidden></div>
+        <form id="help-form" class="card help-form" novalidate>
+          <div class="form-heading">
+            <h2>Tell us what happened</h2>
+          </div>
+          <label class="field" for="order-ref">
+            <span class="label-text">Order reference</span>
+            <input
+              id="order-ref"
+              name="orderRef"
+              type="text"
+              autocomplete="off"
+              placeholder="e.g. MRW-1042"
+              aria-describedby="order-ref-error"
+              required
+            />
+            <span class="field-error" id="order-ref-error"></span>
+          </label>
+
+          <label class="field" for="email">
+            <span class="label-text">Email used at checkout</span>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              aria-describedby="email-error"
+              required
+            />
+
+            <span class="field-error" id="email-error"></span>
+          </label>
+
+          <label class="field" for="issue">
+            <span class="label-text">What went wrong?</span>
+            <textarea
+              id="issue"
+              name="issue"
+              rows="4"
+              maxlength="500"
+              placeholder="I paid, but the course is still locked…"
+              aria-describedby="issue-error"
+              required
+            ></textarea>
+            <span class="field-error" id="issue-error"></span>
+          </label>
+
+          <button class="btn" id="submit" type="submit">Check my order</button>
+        </form>
+        <p class="hint form-privacy">
+          <span class="desktop-copy"
+            >For privacy, the lookup confirms ownership before showing case
+            details.</span
+          ><span class="mobile-copy"
+            >No access is changed from this form alone.</span
+          >
+        </p>
+      </div>
+    </main>
+    <script src="/assets/app.js"></script>
+    <script src="/assets/help.js"></script>
+  </body>
+</html>

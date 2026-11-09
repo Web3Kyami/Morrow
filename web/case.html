@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link rel="icon" href="/assets/morrow-logo-mark.svg" type="image/svg+xml" />
+    <title>Case status · Morrow</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <link rel="stylesheet" href="/assets/states.css" />
+  </head>
+  <body class="customer-status-page">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/"
+          ><img src="/assets/morrow-logo-mark.svg" alt="" />morrow</a
+        >
+        <nav class="nav" aria-label="Primary">
+          <a href="/help">Back to help</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="page" data-state="loading">
+      <h1 class="page-title" id="status-title">Your case</h1>
+      <p class="case-context" id="status-sub"></p>
+      <span id="case-state" class="chip warn" hidden></span>
+      <section id="error-notice" class="notice error" role="alert" hidden>
+        <p id="status-error"></p>
+        <div class="actions">
+          <button class="btn btn-secondary" id="retry-status" type="button">
+            Retry status</button
+          ><a class="text-button" href="/help">Reopen case</a>
+        </div>
+      </section>
+      <div
+        id="loading"
+        class="card status-skeleton skeleton"
+        role="status"
+        aria-label="Loading case status"
+      >
+        <div class="skeleton-person"><i></i><span></span></div>
+        <div class="skeleton-person"><i></i><span></span></div>
+        <div class="skeleton-person"><i></i><span></span></div>
+        <div class="skeleton-person"><i></i><span></span></div>
+      </div>
+      <div id="status" class="status-layout" hidden>
+        <section class="card status-timeline" aria-label="Case progress">
+          <h2>What's happening</h2>
+          <ol class="checklist">
+            <li id="order-step">
+              <h3>Order linked</h3>
+              <p id="order-detail"></p>
+            </li>
+            <li id="payment-step">
+              <h3>Payment check</h3>
+              <p id="payment-detail"></p>
+            </li>
+            <li id="merchant-step">
+              <h3>Merchant review</h3>
+              <p id="merchant-detail"></p>
+            </li>
+            <li id="access-step">
+              <h3>Access</h3>
+              <p id="access-detail"></p>
+            </li>
+          </ol>
+          <button class="text-button" id="refresh" type="button">
+            Refresh status
+          </button>
+        </section>
+        <aside class="card status-correction">
+          <a class="btn btn-secondary" href="/help">Update case details</a>
+        </aside>
+      </div>
+    </main>
+    <script src="/assets/app.js"></script>
+    <script src="/assets/case.js"></script>
+  </body>
+</html>

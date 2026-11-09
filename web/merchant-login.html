@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link rel="icon" href="/assets/morrow-logo-mark.svg" type="image/svg+xml" />
+    <title>Merchant sign-in · Morrow</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <link rel="stylesheet" href="/assets/states.css" />
+  </head>
+  <body class="login-page">
+    <a class="skip" href="#main">Skip to main content</a>
+    <aside class="login-brand">
+      <a class="brand" href="/"
+        ><img src="/assets/morrow-logo-mark.svg" alt="" />morrow</a
+      >
+      <div class="login-story">
+        <h2>Merchant decisions.<br />Verified outcomes.</h2>
+        <div class="short-rule" aria-hidden="true"></div>
+      </div>
+    </aside>
+    <main id="main" class="login-main">
+      <h1 class="page-title">Merchant sign-in</h1>
+      <div id="form-error" class="notice error" role="alert" hidden></div>
+      <form id="login-form" class="login-form" novalidate>
+        <label class="field" for="email">
+          <span class="label-text">Work email</span>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="you@yourshop.example"
+            aria-describedby="email-error"
+            required
+          />
+          <span class="field-error" id="email-error"></span>
+        </label>
+
+        <label class="field" for="password">
+          <span class="label-text">Password</span>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Enter password"
+            aria-describedby="password-error"
+            required
+          />
+          <span class="field-error" id="password-error"></span>
+        </label>
+
+        <button class="btn" id="submit" type="submit">
+          Sign in to your workspace
+        </button>
+        <p class="hint">
+          <a href="/demo">Explore demo without signing in</a>
+        </p>
+      </form>
+    </main>
+    <script src="/assets/app.js"></script>
+    <script src="/assets/merchant-login.js"></script>
+  </body>
+</html>

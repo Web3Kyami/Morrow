@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <link rel="icon" href="/assets/morrow-logo-mark.svg" type="image/svg+xml" />
+    <title>Run proof · Morrow</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+    <link rel="stylesheet" href="/assets/journey.css" />
+    <link rel="stylesheet" href="/assets/states.css" />
+    <link rel="stylesheet" href="/assets/merchant-library.css" />
+  </head>
+  <body class="demo-journey proof-journey">
+    <a class="skip" href="#main">Skip to main content</a>
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="/"
+          ><img src="/assets/morrow-logo-mark.svg" alt="" />morrow</a
+        >
+        <nav class="nav" aria-label="Primary">
+          <a href="/demo">Back to demo</a>
+          <button id="exit-demo" class="text-button" type="button">
+            Exit demo
+          </button>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="journey-page proof-page" data-state="loading">
+      <nav class="chapters proof-chapters" aria-label="Demo chapters">
+        <span class="chapter"><span>A</span> Resolve</span>
+        <span class="chapter"><span>B</span> Remember</span>
+        <span class="chapter"><span>C</span> Refuse</span>
+        <span class="chapter active" aria-current="step"
+          ><span aria-hidden="true">✓</span> Proof</span
+        >
+      </nav>
+      <header class="journey-heading proof-heading">
+        <h1>Proof from this run</h1>
+      </header>
+      <p id="proof-error" class="error-notice" role="alert" hidden></p>
+      <button id="retry-proof" class="btn btn-secondary" type="button" hidden>
+        Retry proof
+      </button>
+      <section
+        id="proof-loading"
+        class="proof-rows"
+        role="status"
+        aria-label="Loading proof"
+      >
+        <article class="proof-row skeleton">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line"></div>
+        </article>
+        <article class="proof-row skeleton">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line"></div>
+        </article>
+        <article class="proof-row skeleton">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line"></div>
+        </article>
+        <article class="proof-row skeleton">
+          <div class="skeleton-line medium"></div>
+          <div class="skeleton-line"></div>
+        </article>
+      </section>
+      <section
+        id="proof-content"
+        class="proof-rows"
+        hidden
+        aria-label="Verified run outcomes"
+      >
+        <article class="proof-row" data-proof="a">
+          <h2>A / Repair</h2>
+          <p id="proof-a-detail"></p>
+          <span id="proof-a-state" class="proof-status"></span>
+        </article>
+        <article class="proof-row" data-proof="remember">
+          <h2>A / Remember</h2>
+          <p id="proof-memory-detail"></p>
+          <span id="proof-memory-state" class="proof-status"></span>
+        </article>
+        <article class="proof-row" data-proof="b">
+          <h2>B / Comparison</h2>
+          <p id="proof-b-detail"></p>
+          <span id="proof-b-state" class="proof-status"></span>
+        </article>
+        <article class="proof-row" data-proof="c">
+          <h2>C / Refusal</h2>
+          <p id="proof-c-detail"></p>
+          <span id="proof-c-state" class="proof-status"></span>
+        </article>
+        <p id="mainnet-deferred" class="provider-safety"></p>
+      </section>
+      <section id="proof-empty" class="state-card" hidden>
+        <h2>Start a demo to see its proof</h2>
+        <a class="btn" href="/demo">Start demo</a>
+      </section>
+      <div id="proof-actions" class="proof-actions">
+        <button id="reset-demo" class="btn btn-secondary" type="button">
+          Reset demo session
+        </button>
+        <p>
+          Reset revokes this demo session. It does not delete permanent Walrus
+          records.
+        </p>
+      </div>
+    </main>
+    <script src="/assets/app.js"></script>
+    <script src="/assets/proof.js"></script>
+  </body>
+</html>
