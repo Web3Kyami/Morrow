@@ -308,7 +308,7 @@ export class MerchantService {
         [actor.tenantId, caseId],
       );
       const lessons = await db.query(
-        `SELECT id, state, job_id, blob_id, fingerprint, policy_version FROM morrow.lessons
+        `SELECT id, state, job_id, blob_id, fingerprint, policy_version, network FROM morrow.lessons
          WHERE tenant_id=$1 AND case_id=$2 ORDER BY id LIMIT 5`,
         [actor.tenantId, caseId],
       );

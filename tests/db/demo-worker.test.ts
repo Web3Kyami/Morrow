@@ -166,6 +166,19 @@ test("reserved payment rechecks policy and live session before signing", async (
         row.error_code,
         reason === "POLICY" ? "POLICY_DENIED" : "SESSION_EXPIRED",
       );
+      await admin.query(
+        "UPDATE morrow.demo_payment_jobs SET not_before=clock_timestamp() WHERE tenant_id=$1",
+        [run.tenantId],
+      );
+      const reclaimed = await admin.query(
+        "SELECT case_id FROM morrow.claim_demo_payment_job($1)",
+        [run.caseId],
+      );
+      assert.equal(
+        reclaimed.rowCount,
+        0,
+        "a blocked UNKNOWN payment must not occupy the automatic worker queue until its blocker is cleared",
+      );
     }
   } finally {
     await admin.end();

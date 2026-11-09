@@ -823,6 +823,7 @@
       new Date(baseline.lease_until).getTime() > Date.now();
     const off = baseline?.off_result,
       result = baseline?.result;
+    if (result) message("comparison-error");
     el("run-off").disabled =
       working || running || !!off || job?.state !== "CONFIRMED";
     el("run-on").disabled = working || running || !off || !!result;
