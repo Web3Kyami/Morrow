@@ -203,12 +203,19 @@
   function heading() {
     const small = matchMedia("(max-width:700px)").matches;
     const caseC = caseCPayment();
+    const comparisonComplete = !!view?.baseline?.result;
     if (!view) el("agent-message").textContent = defaultReply();
     el("story-title").textContent =
       chapter === "B"
         ? small
           ? "Alex's case. Two runs."
-          : "Same problem. Different customer."
+          : view?.baseline?.result?.on?.recall?.status === "NO_ELIGIBLE_LESSON"
+            ? "No memory? Still investigate safely."
+            : view?.baseline?.result?.on?.recall?.status === "UNAVAILABLE"
+              ? "Memory is unavailable."
+              : comparisonComplete
+                ? "What did memory actually change?"
+                : "Same problem. Different customer."
         : chapter === "C"
           ? caseC.verifiedMismatch
             ? "An old fix isn't permission."
@@ -220,7 +227,9 @@
               : "Mira paid. Her course is locked.";
     el("story-context").textContent =
       chapter === "B"
-        ? "Alex Imani · Studio Template Bundle · Order #1078"
+        ? small
+          ? "Studio Template Bundle · Order #1078"
+          : "Alex Imani · Studio Template Bundle · Order #1078"
         : chapter === "C"
           ? "Noor · Layered Lessons · Order #1093"
           : "Layered Lessons · Order #1042";
@@ -236,7 +245,8 @@
     el("case-b").hidden = chapter !== "B";
     el("case-c").hidden = chapter !== "C";
     el("case-c-safety-note").hidden = chapter !== "C";
-    el("main").querySelector(".scenario-note").hidden = chapter === "C";
+    el("main").querySelector(".scenario-note").hidden =
+      chapter === "B" || chapter === "C";
     for (const c of ["a", "b", "c"]) {
       el("chapter-" + c).classList.toggle(
         "active",
@@ -249,7 +259,9 @@
       if (chapter === c.toUpperCase())
         el("chapter-" + c).setAttribute("aria-current", "step");
     }
-    el("chapter-b").disabled = view?.stage !== "A_COMPLETE";
+    el("chapter-b").disabled =
+      view?.stage !== "A_COMPLETE" ||
+      view?.caseA?.summary?.payment?.verdict !== "MATCH";
     const cUnlocked =
       view?.baseline?.state === "COMPLETE" && !!view?.baseline?.result;
     el("chapter-c").disabled = !cUnlocked;
@@ -261,6 +273,8 @@
       ? "Exit"
       : "Exit demo";
     if (!view) {
+      message("action-note");
+      el("action-note").className = "action-note";
       if (matchMedia("(max-width:700px)").matches) {
         el("payment-state").textContent = "Payment unknown";
         el("access-state").textContent = "Access missing";
@@ -278,6 +292,8 @@
     }
     const summary = view.caseA.summary,
       pay = summary.payment.verdict;
+    const paymentUnavailable =
+      pay === "UNKNOWN" && summary.access !== "CONFIRMED";
     el("payment-state").textContent =
       pay === "MATCH"
         ? "Matched"
@@ -309,12 +325,16 @@
     };
     primary.textContent = working
       ? "Checking…"
-      : labels[view.nextAction] || "Check payment";
+      : paymentUnavailable
+        ? "Try verification again"
+        : labels[view.nextAction] || "Check payment";
     primary.disabled =
       working ||
-      ["DECLINED", "WAIT", "PENDING", "BLOCKED"].includes(view.nextAction);
-    el("case-badge").textContent =
-      stage === "A_COMPLETE"
+      (!paymentUnavailable &&
+        ["DECLINED", "WAIT", "PENDING", "BLOCKED"].includes(view.nextAction));
+    el("case-badge").textContent = paymentUnavailable
+      ? "Verification unavailable"
+      : stage === "A_COMPLETE"
         ? "Lesson verified"
         : summary.access === "CONFIRMED"
           ? "Access restored"
@@ -325,13 +345,16 @@
               : "Needs verification";
     el("case-badge").className =
       "state-pill " +
-      (summary.access === "CONFIRMED"
-        ? "ok"
-        : stage === "DECLINED"
-          ? "bad"
-          : "warn");
-    el("action-title").textContent =
-      stage === "A_COMPLETE"
+      (paymentUnavailable
+        ? "bad"
+        : summary.access === "CONFIRMED"
+          ? "ok"
+          : stage === "DECLINED"
+            ? "bad"
+            : "warn");
+    el("action-title").textContent = paymentUnavailable
+      ? "We can't verify payment yet."
+      : stage === "A_COMPLETE"
         ? "This fix can guide the next case."
         : summary.access === "CONFIRMED"
           ? "Access is restored."
@@ -340,13 +363,18 @@
             : stage === "DECLINED"
               ? "No repair was made."
               : "Start with the payment.";
-    el("agent-message").textContent =
-      view.caseA.proposal?.reason ||
-      (summary.access === "CONFIRMED"
-        ? "Access is confirmed in the merchant record."
-        : "I’ll check the payment and your access before suggesting a fix.");
+    el("agent-message").textContent = paymentUnavailable
+      ? "No access will be changed. Try again when the provider responds."
+      : view.caseA.proposal?.reason ||
+        (summary.access === "CONFIRMED"
+          ? "Access is confirmed in the merchant record."
+          : "I’ll check the payment and your access before suggesting a fix.");
     const storage = view.caseA.lesson;
-    if (storage && ["STORING", "RECALL_PENDING"].includes(stage))
+    el("action-note").className = "action-note";
+    if (paymentUnavailable) {
+      message("action-note", "Status: UNKNOWN — not a failed payment.");
+      el("action-note").className = "action-note payment-unknown";
+    } else if (storage && ["STORING", "RECALL_PENDING"].includes(stage))
       message(
         "action-note",
         storage.state === "COMPLETED"
@@ -355,13 +383,15 @@
             ? "The approved lesson is queued for storage."
             : "The storage request is pending.",
       );
-    else
+    else {
       message(
         "action-note",
         stage === "POLICY_BLOCKED"
           ? "Current policy does not permit this step. Exit and start a new demo."
           : "",
       );
+      el("action-note").className = "action-note";
+    }
     if (job?.state === "FAILED" || job?.state === "CANCELLED")
       message(
         "journey-error",
@@ -596,6 +626,16 @@
     if (!credential?.token) {
       await action(start);
       if (view) await refresh();
+      return;
+    }
+    if (
+      view?.caseA.summary.payment.verdict === "UNKNOWN" &&
+      view.caseA.summary.access !== "CONFIRMED"
+    ) {
+      await action(async () => {
+        view = await request("check");
+      });
+      if (view?.stage === "INVESTIGATION_READY") await investigate();
       return;
     }
     const next = view?.nextAction;
@@ -873,6 +913,7 @@
   }
   el("open-b").onclick = openB;
   el("chapter-b").onclick = openB;
+  el("continue-c").onclick = openC;
   async function openC() {
     if (working) return;
     if (!view?.jobs.some((job) => job.role === "C")) {
@@ -914,12 +955,26 @@
   function renderB() {
     const job = view.jobs.find((j) => j.role === "B"),
       baseline = view.baseline;
+    const small = matchMedia("(max-width:700px)").matches;
     const running =
       baseline?.lease_until &&
       new Date(baseline.lease_until).getTime() > Date.now();
     const off = baseline?.off_result,
       result = baseline?.result;
+    const recall = result?.on?.recall?.status;
+    const noEligibleMemory = recall === "NO_ELIGIBLE_LESSON";
+    const memoryUnavailable = recall === "UNAVAILABLE";
     if (result) message("comparison-error");
+    el("off-title").textContent = small
+      ? "Normal investigation"
+      : "Investigate from scratch";
+    el("on-title").textContent = noEligibleMemory
+      ? "No eligible lesson found"
+      : memoryUnavailable
+        ? "Memory unavailable"
+        : small
+          ? "Retrieve approved lesson"
+          : "Investigate with a lesson";
     el("run-off").disabled =
       working || running || !!off || job?.state !== "CONFIRMED";
     el("run-on").disabled = working || running || !off || !!result;
@@ -927,36 +982,62 @@
       ? "Baseline complete"
       : baseline?.state === "OFF_RUNNING" || working
         ? "Investigating…"
-        : "Run without memory";
+        : small
+          ? "Run baseline"
+          : "Run without memory";
     el("run-on").textContent = result
       ? "Comparison complete"
       : baseline?.state === "ON_RUNNING"
         ? "Retrieving & investigating…"
         : off
           ? "Run with memory"
-          : "Run after baseline";
+          : small
+            ? "Run with memory"
+            : "Run after baseline";
+    if (!off && small)
+      el("run-on").setAttribute("aria-label", "Run with memory after baseline");
+    else el("run-on").removeAttribute("aria-label");
+    el("run-on").title = !off ? "Run the baseline first" : "";
     el("off-result").textContent =
-      off?.proposal.reason ||
-      (job?.state !== "CONFIRMED"
-        ? job?.state === "FAILED"
-          ? "Payment unavailable. Exit and try again later."
-          : "Checking this order’s payment…"
-        : "No result yet.");
-    el("on-result").textContent =
-      result?.on.proposal.reason || "No result yet.";
+      off?.metrics?.steps !== undefined
+        ? `${off.metrics.steps} steps · No lesson used`
+        : job?.state !== "CONFIRMED"
+          ? job?.state === "FAILED"
+            ? "Payment unavailable. Exit and try again later."
+            : "Checking this order’s payment…"
+          : "Baseline result · not yet measured";
+    el("on-result").textContent = result
+      ? noEligibleMemory
+        ? "No approved memory was available to this run."
+        : memoryUnavailable
+          ? "Walrus did not return a confirmed recall."
+          : `${result.on.metrics.steps} steps · ${result.on.metrics.lessonsConsidered} verified lesson(s)`
+      : small
+        ? "Run baseline first · Blob ID and benefit unverified"
+        : "Recall and real benefit are unverified";
     const outcome = result?.comparison.outcome;
     message(
       "comparison-outcome",
-      outcome
-        ? {
-            EQUAL: "Both runs reached the same conclusion.",
-            GUIDANCE_DIFFERENCE:
-              "The recalled lesson changed the guidance. This does not establish a faster or better outcome.",
-            INCONCLUSIVE:
-              "Comparison inconclusive. Evidence changed or eligible memory could not be verified.",
-          }[outcome] || "Comparison unavailable."
-        : "",
+      result
+        ? memoryUnavailable
+          ? "Walrus recall was unavailable. The comparison is inconclusive; no lesson informed the second run."
+          : noEligibleMemory
+            ? "No eligible lesson was found. No benefit is established."
+            : {
+                EQUAL:
+                  "Both runs reached the same conclusion. No guidance difference was observed.",
+                GUIDANCE_DIFFERENCE:
+                  "The recalled lesson changed the guidance. This does not establish a faster or better outcome.",
+                INCONCLUSIVE:
+                  "Comparison inconclusive. Evidence changed or eligible memory could not be verified.",
+              }[outcome] || "Comparison unavailable."
+        : small
+          ? "Report no improvement when evidence shows none."
+          : "No measured difference? Show that honestly.",
     );
+    const complete = baseline?.state === "COMPLETE" && !!result;
+    el("continue-c").hidden = !complete;
+    el("continue-c").disabled = working;
   }
   async function compare(mode) {
     if (working) return;

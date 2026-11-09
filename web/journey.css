@@ -230,6 +230,11 @@
   color: var(--muted);
   margin: 8px 0 20px;
 }
+.action-note.payment-unknown {
+  color: var(--danger);
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
 .next-action .error-notice {
   margin: 0 0 16px;
 }
@@ -581,6 +586,12 @@
   font-weight: 600;
   margin-top: 24px;
 }
+#continue-c {
+  display: flex;
+  width: min(100%, 212px);
+  min-height: 48px;
+  margin: 12px 0 0 auto;
+}
 @media (max-width: 1100px) and (min-width: 701px) {
   .journey-page {
     padding-left: 40px;
@@ -651,19 +662,23 @@
     padding: 18px 20px 28px;
   }
   .chapters {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
     gap: 4px;
     height: 37px;
     min-height: 37px;
+  }
+  .chapters .chapter:not(.active) {
+    display: none;
   }
   .chapter {
     width: auto;
     min-width: 0;
     min-height: 37px;
-    padding: 6px 4px;
-    justify-content: center;
-    gap: 4px;
+    padding: 6px 12px;
+    justify-content: flex-start;
+    gap: 8px;
     font-size: 12px;
     line-height: 16px;
   }
@@ -864,10 +879,13 @@
     padding: 12px;
   }
   .comparison-contract {
-    font-size: 16px;
-    line-height: 23px;
-    padding: 16px;
-    margin-bottom: 18px;
+    background: transparent;
+    color: var(--primary);
+    font-size: 15px;
+    line-height: 22px;
+    font-weight: 500;
+    padding: 0;
+    margin: 0 0 16px;
   }
   .comparison-grid {
     grid-template-columns: 1fr;
@@ -875,19 +893,40 @@
   }
   .comparison-lane {
     border-radius: 17px;
-    min-height: 345px;
-    padding: 20px;
+    min-height: 284px;
+    padding: 16px;
   }
   .comparison-lane h2 {
-    margin-top: 25px;
-    font-size: 24px;
-    line-height: 32px;
+    margin: 27px 0 20px;
+    font-size: 21px;
+    line-height: 28px;
   }
   .comparison-lane li {
     font-size: 16px;
+    line-height: 22px;
+    margin-bottom: 1px;
+    padding-left: 0;
+  }
+  .comparison-lane li::before {
+    display: none;
   }
   .comparison-lane .btn {
-    margin-top: 14px;
+    margin-top: auto;
+    min-height: 48px;
+  }
+  .lane-result {
+    margin: auto 0 8px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  #comparison-outcome {
+    margin-top: 46px;
+    font-size: 15px;
+    line-height: 22px;
+  }
+  #continue-c {
+    width: 100%;
+    margin: 18px 0 0;
   }
 }
 

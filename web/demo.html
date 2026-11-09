@@ -103,11 +103,20 @@
         <div class="comparison-grid">
           <article class="comparison-lane">
             <span class="state-pill neutral">Memory OFF</span>
-            <h2>Investigate from scratch</h2>
+            <h2 id="off-title">Investigate from scratch</h2>
             <ol>
-              <li>Verify this order</li>
-              <li>Read current entitlement</li>
-              <li>Choose a safe next step</li>
+              <li>
+                <span class="desktop-copy">Verify this order</span
+                ><span class="mobile-copy">Check order + payment</span>
+              </li>
+              <li>
+                <span class="desktop-copy">Read current entitlement</span
+                ><span class="mobile-copy">Read persisted access</span>
+              </li>
+              <li>
+                <span class="desktop-copy">Choose a safe next step</span
+                ><span class="mobile-copy">Follow current merchant policy</span>
+              </li>
             </ol>
             <p class="lane-result" id="off-result">
               Baseline result · not yet measured
@@ -118,11 +127,21 @@
           </article>
           <article class="comparison-lane">
             <span class="state-pill plum">Memory ON</span>
-            <h2>Investigate with a lesson</h2>
+            <h2 id="on-title">Investigate with a lesson</h2>
             <ol>
-              <li>Verify this same order</li>
-              <li>Retrieve scoped lesson</li>
-              <li>Check lesson against current policy</li>
+              <li>
+                <span class="desktop-copy">Verify this same order</span
+                ><span class="mobile-copy">Check order + payment</span>
+              </li>
+              <li>
+                <span class="desktop-copy">Retrieve scoped approved lesson</span
+                ><span class="mobile-copy">Read persisted access</span>
+              </li>
+              <li>
+                <span class="desktop-copy"
+                  >Check lesson against current policy</span
+                ><span class="mobile-copy">Follow current merchant policy</span>
+              </li>
             </ol>
             <p class="lane-result" id="on-result">No result yet.</p>
             <button id="run-on" class="btn" type="button" disabled>
@@ -131,7 +150,12 @@
           </article>
         </div>
         <p id="comparison-error" class="error-notice" role="alert" hidden></p>
-        <p id="comparison-outcome" role="status" hidden></p>
+        <p id="comparison-outcome" role="status">
+          No measured difference? Show that honestly.
+        </p>
+        <button id="continue-c" class="btn" type="button" hidden>
+          Continue to Case C
+        </button>
       </section>
       <section id="case-c" class="refusal-grid" hidden aria-label="Case C">
         <article class="refusal-summary">
