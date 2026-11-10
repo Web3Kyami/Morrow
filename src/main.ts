@@ -33,10 +33,15 @@ try {
   const resolution = new ResolutionService(pool, payment);
   const merchant = new MerchantService(
     pool,
-    config.PRIVY_APP_ID && config.PRIVY_VERIFICATION_KEY
+    config.PRIVY_APP_ID
       ? {
           appId: config.PRIVY_APP_ID,
-          verificationKey: config.PRIVY_VERIFICATION_KEY,
+          ...(config.PRIVY_VERIFICATION_KEY
+            ? { verificationKey: config.PRIVY_VERIFICATION_KEY }
+            : {}),
+          ...(config.PRIVY_APP_SECRET
+            ? { appSecret: config.PRIVY_APP_SECRET }
+            : {}),
         }
       : undefined,
   );

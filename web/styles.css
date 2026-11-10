@@ -780,10 +780,10 @@ dt {
     line-height: 34px;
     margin: 0;
   }
-  .desktop-copy {
+  .help-page .desktop-copy {
     display: none;
   }
-  .mobile-copy {
+  .help-page .mobile-copy {
     display: block;
   }
   .help-intro .lede {

@@ -202,6 +202,19 @@ test(
       assert.equal(savedDraft.statusCode, 200);
       assert.equal(savedDraft.json().version, 2);
 
+      const draftLibrary = await app.inject({
+        method: "GET",
+        url: "/api/v1/merchant/lessons?q=course",
+        headers: { cookie },
+      });
+      assert.equal(draftLibrary.statusCode, 200);
+      assert.equal(draftLibrary.json().drafts.length, 1);
+      assert.equal(draftLibrary.json().drafts[0].policyVersion, 1);
+      assert.deepEqual(draftLibrary.json().drafts[0].applicableCategories, [
+        "course",
+        "download",
+      ]);
+
       const stale = await app.inject({
         method: "PUT",
         url: `/api/v1/merchant/cases/${mc.caseId}/lesson-draft`,

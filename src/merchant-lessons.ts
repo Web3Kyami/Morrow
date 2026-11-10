@@ -316,6 +316,8 @@ export class MerchantLessonService {
           version: row.version as number,
           approvalState: row.approval_state as string,
           productCategory: parsed.data.productCategory,
+          policyVersion: parsed.data.policyVersion,
+          applicableCategories: parsed.data.applicableCategories,
           updatedAt: row.updated_at as Date,
         };
         return !search ||

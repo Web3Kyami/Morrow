@@ -5,11 +5,10 @@ import { tenantTransaction, type Database } from "./database.js";
 import { DomainError } from "./errors.js";
 
 /**
- * S4 customer intake and status. Demo-scoped only: an intake proves
- * ownership with the order reference from the receipt plus the receipt
- * email. Only hashes are stored; the plain reference and email never
- * enter the database. Status returns persisted verdicts, never raw
- * digests or identity lookups.
+ * Customer intake matches fictional demo receipt references and emails.
+ * Database lookups exclude ordinary merchant tenants: real customer access
+ * requires a separate verified ownership flow. Only receipt hashes are stored.
+ * Status returns persisted verdicts, never raw digests or identity lookups.
  */
 export const intakeSchema = z
   .object({
@@ -69,7 +68,7 @@ export class CustomerService {
           "SELECT id FROM morrow.cases WHERE tenant_id=$1 AND id=$2 FOR UPDATE",
           [row.tenant_id, row.case_id],
         );
-        // Durable counted attempts: each permitted ownership-verified
+        // Durable counted attempts: each permitted demo-receipt-matched
         // submission appends one help_intake_attempts row inside this
         // serialized transaction, so repeats, concurrency and restarts
         // cannot bypass the rolling 24h, per-order limit (5/day).

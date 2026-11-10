@@ -7,7 +7,43 @@ function LoginButton({ errorNode }: { errorNode: HTMLElement }) {
     usePrivy();
   const { isOpen } = useModalStatus();
   const [busy, setBusy] = useState(false);
+  const [logoutNonce] = useState(() => {
+    const nonce = new URLSearchParams(window.location.search).get("signedOut");
+    try {
+      return nonce !== null &&
+        window.sessionStorage.getItem("morrow:privy-signout") ===
+          `ready:${nonce}`
+        ? nonce
+        : null;
+    } catch {
+      // Without same-tab confirmation, a URL parameter cannot trigger logout.
+      return null;
+    }
+  });
+  const [needsLogout, setNeedsLogout] = useState(logoutNonce !== null);
   const exchanging = useRef(false);
+
+  const finishLogout = async () => {
+    if (exchanging.current) return;
+    exchanging.current = true;
+    setBusy(true);
+    errorNode.hidden = true;
+    try {
+      await logout();
+      window.sessionStorage.removeItem("morrow:privy-signout");
+      const url = new URL(window.location.href);
+      url.searchParams.delete("signedOut");
+      window.history.replaceState(null, "", url.pathname + url.search);
+      errorNode.textContent = "";
+      setNeedsLogout(false);
+    } catch {
+      errorNode.textContent = "Sign-out could not finish. Try again.";
+      errorNode.hidden = false;
+    } finally {
+      exchanging.current = false;
+      setBusy(false);
+    }
+  };
 
   const exchangeForSession = async () => {
     if (exchanging.current) return;
@@ -29,7 +65,7 @@ function LoginButton({ errorNode }: { errorNode: HTMLElement }) {
         } | null;
         if (response.status === 401) {
           errorNode.textContent =
-            "This Privy account is not linked to a merchant workspace.";
+            "Sign-in could not be verified for this workspace. Try another account.";
           await logout().catch(() => undefined);
           return;
         }
@@ -61,8 +97,21 @@ function LoginButton({ errorNode }: { errorNode: HTMLElement }) {
   };
 
   useEffect(() => {
-    if (ready && authenticated) void exchangeForSession();
-  }, [ready, authenticated]);
+    if (!logoutNonce) {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has("signedOut")) {
+        url.searchParams.delete("signedOut");
+        window.history.replaceState(null, "", url.pathname + url.search);
+        window.sessionStorage.removeItem("morrow:privy-signout");
+      }
+    }
+  }, [logoutNonce]);
+
+  useEffect(() => {
+    if (!ready) return;
+    if (needsLogout) void finishLogout();
+    else if (authenticated) void exchangeForSession();
+  }, [ready, authenticated, needsLogout]);
 
   useEffect(() => {
     if (error) {
@@ -79,17 +128,22 @@ function LoginButton({ errorNode }: { errorNode: HTMLElement }) {
       disabled={!ready || busy || isOpen}
       aria-busy={busy}
       onClick={() => {
-        if (authenticated) void exchangeForSession();
+        if (needsLogout) void finishLogout();
+        else if (authenticated) void exchangeForSession();
         else login();
       }}
     >
       {busy
-        ? "Signing in…"
-        : isOpen
-          ? "Complete secure sign-in…"
-          : ready
-            ? "Continue with Privy"
-            : "Loading sign-in…"}
+        ? needsLogout
+          ? "Signing out…"
+          : "Signing in…"
+        : needsLogout
+          ? "Retry sign-out"
+          : isOpen
+            ? "Complete secure sign-in…"
+            : ready
+              ? "Continue with Privy"
+              : "Loading sign-in…"}
     </button>
   );
 }
@@ -100,7 +154,17 @@ export function mountPrivyLogin(
   errorNode: HTMLElement,
 ) {
   createRoot(rootNode).render(
-    <PrivyProvider appId={appId}>
+    <PrivyProvider
+      appId={appId}
+      config={{
+        loginMethods: ["email"],
+        appearance: { theme: "light", accentColor: "#512e48", walletList: [] },
+        externalWallets: {
+          disableAllExternalWallets: true,
+          walletConnect: { enabled: false },
+        },
+      }}
+    >
       <LoginButton errorNode={errorNode} />
     </PrivyProvider>,
   );

@@ -84,7 +84,8 @@ export function createApp(
     bodyLimit: 16_384,
     requestTimeout: 15_000,
     connectionTimeout: 10_000,
-    trustProxy: false,
+    // Nginx is the local ingress; never trust forwarding headers from elsewhere.
+    trustProxy: ["127.0.0.1", "::1"],
   });
   const secureCookie = options.secureCookies === false ? "" : "; Secure";
   // Simple per-IP budget for the public intake route (demo scope guard only;
@@ -108,7 +109,8 @@ export function createApp(
       );
     } else {
       const loginWithPrivy =
-        request.url === "/merchant/login" && Boolean(options.privyAppId);
+        request.url.split("?")[0] === "/merchant/login" &&
+        Boolean(options.privyAppId);
       reply.header(
         "Content-Security-Policy",
         loginWithPrivy
@@ -774,7 +776,7 @@ export function createApp(
     app.get("/proof", (_request, reply) => serve(reply as never, "proof.html"));
     app.get("/assets/:name", (request, reply) => {
       const name = (request.params as { name?: unknown }).name;
-      if (typeof name !== "string" || !/^[a-z0-9.-]+$/i.test(name))
+      if (typeof name !== "string" || !/^[a-z0-9_.-]+$/i.test(name))
         throw new DomainError("NOT_FOUND", 404);
       return serve(reply as never, name);
     });

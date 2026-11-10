@@ -92,10 +92,10 @@
   grid-row: 1;
   display: inline-flex;
   align-items: center;
-  min-height: 27px;
+  min-height: 30px;
   padding: 4px 12px;
   border-radius: 18px;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 18px;
   font-weight: 600;
 }

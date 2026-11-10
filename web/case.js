@@ -47,7 +47,7 @@
         "chip " +
         (data.access.entitled ? "ok" : verdict === "MISMATCH" ? "bad" : "warn");
       el("case-state").hidden = false;
-      step("order", "confirmed", "Order ownership confirmed");
+      step("order", "confirmed", "Order details matched");
       step(
         "payment",
         verdict === "MATCH"

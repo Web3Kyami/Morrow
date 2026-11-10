@@ -15,11 +15,20 @@ const schema = z.object({
     .regex(/^[A-Za-z0-9_-]{8,128}$/)
     .optional(),
   PRIVY_VERIFICATION_KEY: z.string().min(1).optional(),
+  PRIVY_APP_SECRET: z.string().min(1).optional(),
 });
 export function readConfig(env: NodeJS.ProcessEnv = process.env) {
   const config = schema.parse(env);
-  if (Boolean(config.PRIVY_APP_ID) !== Boolean(config.PRIVY_VERIFICATION_KEY))
-    throw new Error("PRIVY_APP_ID_AND_VERIFICATION_KEY_REQUIRED_TOGETHER");
+  if (
+    config.PRIVY_VERIFICATION_KEY &&
+    !config.PRIVY_VERIFICATION_KEY.includes("-----BEGIN PUBLIC KEY-----")
+  )
+    throw new Error("PRIVY_VERIFICATION_KEY_MUST_BE_PUBLIC_KEY");
+  if (
+    Boolean(config.PRIVY_APP_ID) !==
+    Boolean(config.PRIVY_APP_SECRET || config.PRIVY_VERIFICATION_KEY)
+  )
+    throw new Error("PRIVY_APP_ID_AND_SERVER_VERIFICATION_REQUIRED_TOGETHER");
   if (
     config.MERCHANT_FIXTURE_LOGIN_ENABLED === "true" &&
     env.NODE_ENV === "production"

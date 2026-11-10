@@ -1,5 +1,5 @@
 (() => {
-  const { api, el, busy, friendlyError } = window.Morrow;
+  const { api, el, busy, friendlyError, signOut } = window.Morrow;
   let run = 0;
   const badge = (id, text, tone) => {
     const node = el(id);
@@ -115,14 +115,6 @@
   el("retry-provider-error").addEventListener("click", () =>
     busy(el("retry-provider-error"), load),
   );
-  el("sign-out").addEventListener("click", async () => {
-    await busy(el("sign-out"), async () => {
-      try {
-        await api("/api/v1/merchant/session/logout", { method: "POST" });
-      } finally {
-        location.href = "/merchant/login";
-      }
-    });
-  });
+  el("sign-out").addEventListener("click", () => signOut(el("sign-out")));
   load();
 })();

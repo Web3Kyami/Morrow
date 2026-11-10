@@ -6,7 +6,7 @@ import {
   scryptSync,
   timingSafeEqual,
 } from "node:crypto";
-import { verifyAccessToken } from "@privy-io/node";
+import { PrivyClient, verifyAccessToken } from "@privy-io/node";
 import { z } from "zod";
 import { tenantTransaction, type Database } from "./database.js";
 import { DomainError } from "./errors.js";
@@ -59,11 +59,25 @@ function tokenHash(token: string) {
 }
 
 export class MerchantService {
+  private readonly privyClient?: PrivyClient;
+
   constructor(
     private readonly pool: Database,
-    private readonly privy?: { appId: string; verificationKey: string },
+    private readonly privy?: {
+      appId: string;
+      verificationKey?: string;
+      appSecret?: string;
+    },
     private readonly verifyPrivyToken: typeof verifyAccessToken = verifyAccessToken,
-  ) {}
+  ) {
+    if (privy?.appSecret)
+      this.privyClient = new PrivyClient({
+        appId: privy.appId,
+        appSecret: privy.appSecret,
+        timeout: 10_000,
+        maxRetries: 0,
+      });
+  }
 
   get privyAppId() {
     return this.privy?.appId ?? null;
@@ -112,11 +126,18 @@ export class MerchantService {
 
     let claims: Awaited<ReturnType<typeof verifyAccessToken>>;
     try {
-      claims = await this.verifyPrivyToken({
-        access_token: accessToken,
-        app_id: this.privy.appId,
-        verification_key: this.privy.verificationKey,
-      });
+      if (this.privy.verificationKey)
+        claims = await this.verifyPrivyToken({
+          access_token: accessToken,
+          app_id: this.privy.appId,
+          verification_key: this.privy.verificationKey,
+        });
+      else if (this.privyClient)
+        claims = await this.privyClient
+          .utils()
+          .auth()
+          .verifyAccessToken(accessToken);
+      else throw new Error("IDENTITY_PROVIDER_NOT_CONFIGURED");
     } catch {
       // Provider/token details are deliberately not exposed or logged.
       throw new DomainError("INVALID_CREDENTIALS", 401);

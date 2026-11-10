@@ -5,7 +5,7 @@ import { createPool } from "../../src/database.js";
 import { createApp } from "../../src/http.js";
 import { ResolutionService } from "../../src/resolution.js";
 import { CustomerService, hash } from "../../src/customer.js";
-import { seedCase } from "../fixtures.js";
+import { seedCase, seedMerchantCase } from "../fixtures.js";
 
 const url = process.env.TEST_DATABASE_URL;
 const CUSTOMER_EMAIL = "case-a-buyer@example.test";
@@ -219,6 +219,135 @@ test(
       assert.equal(res.statusCode, 401);
     } finally {
       await app.close();
+      await db.end();
+    }
+  },
+);
+
+test(
+  "public customer intake excludes unmarked merchant orders",
+  { skip: !url },
+  async () => {
+    const admin = createPool(url!),
+      db = createPool(process.env.TEST_RUNTIME_DATABASE_URL ?? url!);
+    const merchant = await seedMerchantCase(admin);
+    const { randomBytes } = await import("node:crypto");
+    const orderRef = "MRW-ORDR" + randomBytes(4).toString("hex").toUpperCase();
+    await admin.query(
+      "INSERT INTO morrow.order_refs(tenant_id,order_id,reference_hash,email_hash) VALUES ($1,$2,$3,$4)",
+      [
+        merchant.actor.tenantId,
+        merchant.orderId,
+        hash(orderRef),
+        hash(CUSTOMER_EMAIL),
+      ],
+    );
+    const marker = await admin.query(
+      "SELECT public_demo_intake FROM morrow.tenants WHERE id=$1",
+      [merchant.actor.tenantId],
+    );
+    assert.equal(marker.rows[0]?.public_demo_intake, false);
+    const app = createApp(
+      db,
+      new ResolutionService(db, {
+        getTransaction: async () => {
+          throw new Error("UNUSED");
+        },
+      }),
+      { demoEnabled: true },
+      new CustomerService(db),
+    );
+    try {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/v1/help-requests",
+        payload: {
+          orderRef,
+          email: CUSTOMER_EMAIL,
+          issue: "paid but no access",
+        },
+      });
+      assert.equal(response.statusCode, 404);
+      assert.equal(response.json().error, "ORDER_NOT_FOUND");
+    } finally {
+      await app.close();
+      await admin.end();
+      await db.end();
+    }
+  },
+);
+
+test(
+  "explicit fictional merchant intake works while its marker stays owner-managed",
+  { skip: !url },
+  async () => {
+    const admin = createPool(url!),
+      db = createPool(process.env.TEST_RUNTIME_DATABASE_URL ?? url!);
+    const merchant = await seedMerchantCase(admin);
+    const { randomBytes } = await import("node:crypto");
+    const orderRef = "MRW-ORDR" + randomBytes(4).toString("hex").toUpperCase();
+    await admin.query(
+      "INSERT INTO morrow.order_refs(tenant_id,order_id,reference_hash,email_hash) VALUES ($1,$2,$3,$4)",
+      [
+        merchant.actor.tenantId,
+        merchant.orderId,
+        hash(orderRef),
+        hash(CUSTOMER_EMAIL),
+      ],
+    );
+    await admin.query(
+      "UPDATE morrow.tenants SET public_demo_intake=true WHERE id=$1",
+      [merchant.actor.tenantId],
+    );
+    const app = createApp(
+      db,
+      new ResolutionService(db, {
+        getTransaction: async () => {
+          throw new Error("UNUSED");
+        },
+      }),
+      { demoEnabled: true },
+      new CustomerService(db),
+    );
+    try {
+      await assert.rejects(
+        db.query(
+          "UPDATE morrow.tenants SET public_demo_intake=false WHERE id=$1",
+          [merchant.actor.tenantId],
+        ),
+        (error: unknown) => (error as { code?: string }).code === "42501",
+      );
+
+      const intake = await app.inject({
+        method: "POST",
+        url: "/api/v1/help-requests",
+        payload: {
+          orderRef,
+          email: CUSTOMER_EMAIL,
+          issue: "paid but no access",
+        },
+      });
+      assert.equal(intake.statusCode, 200);
+      const accessToken = intake.json().accessToken as string;
+
+      const status = await app.inject({
+        url: `/api/v1/help-cases/${merchant.caseId}`,
+        headers: { authorization: `Bearer ${accessToken}` },
+      });
+      assert.equal(status.statusCode, 200);
+
+      await admin.query(
+        "UPDATE morrow.tenants SET public_demo_intake=false WHERE id=$1",
+        [merchant.actor.tenantId],
+      );
+      const closedStatus = await app.inject({
+        url: `/api/v1/help-cases/${merchant.caseId}`,
+        headers: { authorization: `Bearer ${accessToken}` },
+      });
+      assert.equal(closedStatus.statusCode, 404);
+    } finally {
+      await app.close();
+      await admin.end();
       await db.end();
     }
   },

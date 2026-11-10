@@ -53,7 +53,7 @@ if (!url) {
       [];
     await tenantTransaction(pool, tenantId, async (db) => {
       await db.query(
-        "INSERT INTO morrow.tenants(id,kind,policy_version,grant_enabled) VALUES ($1,'merchant',2,true)",
+        "INSERT INTO morrow.tenants(id,kind,policy_version,grant_enabled,public_demo_intake) VALUES ($1,'merchant',2,true,true)",
         [tenantId],
       );
       await db.query(

@@ -185,3 +185,125 @@ test("reserved payment rechecks policy and live session before signing", async (
     await db.end();
   }
 });
+
+test("expired prepared payment stays reserved for reconciliation and leaves the queue", async () => {
+  const admin = createPool(url),
+    db = createPool(process.env.TEST_RUNTIME_DATABASE_URL!);
+  try {
+    const provisioning = new DemoProvisioningService(db, undefined, {
+      deferPayments: true,
+    });
+    const expiredRun = await provisioning.provision(crypto.randomUUID());
+    const digest = crypto.randomUUID().replaceAll("-", "").replaceAll("0", "1");
+    const gasRef = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 30 * 60_000);
+    await admin.query(
+      "SELECT morrow.prepare_demo_payment($1,$2,$3,$4,$5,$6,$7,$8)",
+      [
+        expiredRun.tenantId,
+        expiredRun.operatorId,
+        expiredRun.caseId,
+        digest,
+        "0x" + "1".repeat(64),
+        "0x" + "2".repeat(64),
+        "1000000",
+        expiresAt,
+      ],
+    );
+    await admin.query(
+      `INSERT INTO morrow.demo_gas_reservations(gas_ref,tenant_id,case_id)
+       VALUES($1,$2,$3)`,
+      [gasRef, expiredRun.tenantId, expiredRun.caseId],
+    );
+    await admin.query(
+      `UPDATE morrow.demo_payment_jobs
+       SET state='RESERVED',digest=$3,transaction_bytes='dGVzdA==',
+           gas_budget=2000000,amount=1000000,expires_at=clock_timestamp()-interval '1 second'
+       WHERE tenant_id=$1 AND case_id=$2`,
+      [expiredRun.tenantId, expiredRun.caseId, digest],
+    );
+
+    let submissions = 0;
+    const chain: DemoChain = {
+      prepare: async () => {
+        throw Error("SHOULD_NOT_PREPARE_A_RESERVED_PAYMENT");
+      },
+      observe: async () => "ABSENT",
+      submit: async () => {
+        submissions++;
+      },
+    };
+    const worker = new DemoPaymentWorker(
+      db,
+      chain,
+      new ResolutionService(db, {
+        getTransaction: async () => {
+          throw Error("NOT_USED");
+        },
+      }),
+    );
+    assert.equal(await worker.runOne(expiredRun.caseId), "UNKNOWN");
+    assert.equal(submissions, 0);
+    const expired = (
+      await admin.query(
+        `SELECT state,error_code,digest,attempts,
+                (SELECT count(*)::int FROM morrow.demo_gas_reservations
+                 WHERE tenant_id=$1 AND case_id=$2 AND gas_ref=$3) AS reservations
+         FROM morrow.demo_payment_jobs WHERE tenant_id=$1 AND case_id=$2`,
+        [expiredRun.tenantId, expiredRun.caseId, gasRef],
+      )
+    ).rows[0];
+    assert.equal(expired.state, "UNKNOWN");
+    assert.equal(expired.error_code, "EXPIRED_RECONCILIATION_REQUIRED");
+    assert.equal(expired.digest, digest);
+    assert.equal(expired.attempts, 1);
+    assert.equal(expired.reservations, 1);
+
+    await admin.query(
+      "UPDATE morrow.demo_payment_jobs SET not_before=clock_timestamp() WHERE tenant_id=$1 AND case_id=$2",
+      [expiredRun.tenantId, expiredRun.caseId],
+    );
+    const expiredClaim = await admin.query(
+      "SELECT case_id FROM morrow.claim_demo_payment_job($1)",
+      [expiredRun.caseId],
+    );
+    assert.equal(expiredClaim.rowCount, 0);
+
+    const transientRun = await provisioning.provision(crypto.randomUUID());
+    const transientDigest = crypto
+      .randomUUID()
+      .replaceAll("-", "")
+      .replaceAll("0", "1");
+    await admin.query(
+      "SELECT morrow.prepare_demo_payment($1,$2,$3,$4,$5,$6,$7,$8)",
+      [
+        transientRun.tenantId,
+        transientRun.operatorId,
+        transientRun.caseId,
+        transientDigest,
+        "0x" + "3".repeat(64),
+        "0x" + "4".repeat(64),
+        "1000000",
+        new Date(Date.now() + 30 * 60_000),
+      ],
+    );
+    await admin.query(
+      `UPDATE morrow.demo_payment_jobs
+       SET state='UNKNOWN',error_code='PROVIDER_UNAVAILABLE',digest=$3,
+           transaction_bytes='dGVzdA==',gas_budget=2000000,amount=1000000,
+           not_before=clock_timestamp()
+       WHERE tenant_id=$1 AND case_id=$2`,
+      [transientRun.tenantId, transientRun.caseId, transientDigest],
+    );
+    const transientClaim = await admin.query(
+      "SELECT case_id,state,digest FROM morrow.claim_demo_payment_job($1)",
+      [transientRun.caseId],
+    );
+    assert.equal(transientClaim.rowCount, 1);
+    assert.equal(transientClaim.rows[0].state, "UNKNOWN");
+    assert.equal(transientClaim.rows[0].digest, transientDigest);
+  } finally {
+    await admin.end();
+    await db.end();
+  }
+});

@@ -1,11 +1,12 @@
 (() => {
-  const { api, el, busy, friendlyError, openDialog, setupDialog } =
+  const { api, el, busy, friendlyError, openDialog, setupDialog, signOut } =
     window.Morrow;
   const dialog = el("lesson-details");
   setupDialog(dialog);
   let rows = [],
     run = 0,
-    timer = null;
+    timer = null,
+    hasLoaded = false;
 
   function stateFor(lesson) {
     if (lesson.approvalState === "DRAFT")
@@ -49,14 +50,29 @@
 
   function inspect(item, returnTarget) {
     const status = stateFor(item);
+    const isDraft =
+      item.approvalState === "DRAFT" || item.approvalState === "APPROVING";
     const details = el("memory-details");
     details.replaceChildren(
       detailRow(
         "Lesson source",
-        `Merchant-approved outcome · ${item.caseId.slice(-8)}`,
+        `${isDraft ? "Draft from" : "Merchant-approved outcome ·"} ${item.caseId.slice(-8)}`,
       ),
+      detailRow("Merchant scope", "This authenticated merchant workspace"),
+      ...(item.applicableCategories?.length
+        ? [
+            detailRow(
+              "Applicable categories",
+              item.applicableCategories.join(", "),
+            ),
+          ]
+        : [detailRow("Product category", item.productCategory)]),
+      ...(Number.isInteger(item.policyVersion)
+        ? [detailRow("Policy version", `Version ${item.policyVersion}`)]
+        : [detailRow("Policy version", "Recorded when approved")]),
       detailRow("Review", item.approvalState || "Approved"),
       detailRow("Write status", status.label),
+      ...(item.jobId ? [detailRow("Storage job", item.jobId, true)] : []),
       detailRow("Network", item.network || "Walrus Testnet"),
       detailRow("Blob ID", item.blobId || "Not available yet", true),
       detailRow(
@@ -81,7 +97,7 @@
       : `Case ${item.caseId.slice(-8)} · ${item.applicableCategories.join(", ")}`;
     const badge = document.createElement("span");
     const status = stateFor(item);
-    badge.className = `state-pill ${status.tone}`;
+    badge.className = `lesson-status ${status.tone}`;
     badge.textContent = status.label;
     const inspect = document.createElement("button");
     inspect.className = "text-button lesson-inspect";
@@ -103,7 +119,13 @@
   function render() {
     const container = el("lesson-rows");
     container.replaceChildren();
-    for (const item of rows) container.append(makeItem(item));
+    for (const item of rows)
+      container.append(
+        makeItem(
+          item,
+          item.approvalState === "DRAFT" || item.approvalState === "APPROVING",
+        ),
+      );
     el("lesson-empty").hidden =
       rows.length > 0 || !!el("lesson-search").value.trim();
     el("lesson-no-results").hidden =
@@ -114,9 +136,15 @@
 
   async function load() {
     const current = ++run;
-    el("library-content").hidden = true;
+    const preserveContent = hasLoaded;
+    if (!preserveContent) {
+      el("library-content").hidden = true;
+      el("library-loading").hidden = false;
+    } else {
+      el("library-content").setAttribute("aria-busy", "true");
+      el("library-status").textContent = "Updating lessons";
+    }
     el("library-error").hidden = true;
-    el("library-loading").hidden = false;
     try {
       const q = el("lesson-search").value.trim();
       const data = await api(
@@ -132,16 +160,22 @@
       ];
       el("library-loading").hidden = true;
       el("library-content").hidden = false;
+      el("library-content").setAttribute("aria-busy", "false");
       el("main").dataset.state = "ready";
+      hasLoaded = true;
       render();
     } catch (error) {
       if (current !== run) return;
       el("library-loading").hidden = true;
       el("library-error").hidden = false;
-      el("library-error-text").textContent = friendlyError(
-        error,
-        "The lesson library is unavailable. Try again.",
-      );
+      el("library-error-text").textContent = hasLoaded
+        ? "The search couldn't be updated. Existing lessons remain visible. Try again."
+        : friendlyError(error, "The lesson library is unavailable. Try again.");
+      el("library-content").hidden = !hasLoaded;
+      el("library-content").setAttribute("aria-busy", "false");
+      if (hasLoaded)
+        el("library-status").textContent =
+          "Search update failed. Existing lessons remain visible.";
       el("main").dataset.state = "error";
       if (error.status === 401) location.href = "/merchant/login";
     }
@@ -154,14 +188,6 @@
     clearTimeout(timer);
     timer = setTimeout(load, 180);
   });
-  el("sign-out").addEventListener("click", async () => {
-    await busy(el("sign-out"), async () => {
-      try {
-        await api("/api/v1/merchant/session/logout", { method: "POST" });
-      } finally {
-        location.href = "/merchant/login";
-      }
-    });
-  });
+  el("sign-out").addEventListener("click", () => signOut(el("sign-out")));
   load();
 })();

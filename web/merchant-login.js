@@ -8,10 +8,8 @@
       module.mountPrivyLogin(appId, el("privy-root"), el("privy-error"));
       el("privy-auth").hidden = false;
     } catch (error) {
-      el("privy-error").textContent = friendlyError(
-        error,
-        "Secure sign-in could not load. Try again later.",
-      );
+      el("privy-error").textContent =
+        "Secure sign-in could not load. Refresh and try again.";
       el("privy-error").hidden = false;
       el("privy-auth").hidden = false;
     }

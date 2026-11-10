@@ -180,6 +180,55 @@ function setupDialog(dialog) {
     button.onclick = () => closeDialog(dialog);
 }
 
+async function signOut(button) {
+  await busy(button, async () => {
+    const privySignOutKey = "morrow:privy-signout";
+    const signOutNonce = crypto.randomUUID();
+    let notice = el("sign-out-error");
+    if (!notice) {
+      notice = document.createElement("p");
+      notice.id = "sign-out-error";
+      notice.className = "notice error";
+      notice.setAttribute("role", "alert");
+      document.querySelector("main").prepend(notice);
+    }
+    notice.hidden = true;
+    try {
+      // Check that this tab can carry a one-time Privy logout handoff before
+      // the server session is revoked.
+      sessionStorage.setItem(privySignOutKey, `pending:${signOutNonce}`);
+    } catch {
+      notice.textContent =
+        "Sign-out is unavailable in this browser tab. Try again.";
+      notice.hidden = false;
+      return;
+    }
+    const finishBrowserSignOut = () => {
+      sessionStorage.setItem(privySignOutKey, `ready:${signOutNonce}`);
+      const query = new URLSearchParams({ signedOut: signOutNonce });
+      location.href = `/merchant/login?${query}`;
+    };
+    try {
+      await api("/api/v1/merchant/session/logout", { method: "POST" });
+      finishBrowserSignOut();
+    } catch {
+      const sessionStatus = await fetch("/api/v1/merchant/cases", {
+        credentials: "same-origin",
+        cache: "no-store",
+      })
+        .then((response) => response.status)
+        .catch(() => null);
+      if (sessionStatus === 401) {
+        finishBrowserSignOut();
+        return;
+      }
+      sessionStorage.removeItem(privySignOutKey);
+      notice.textContent = "Sign-out could not finish. Try Exit again.";
+      notice.hidden = false;
+    }
+  });
+}
+
 window.Morrow = {
   api,
   friendlyError,
@@ -193,4 +242,5 @@ window.Morrow = {
   openDialog,
   closeDialog,
   setupDialog,
+  signOut,
 };

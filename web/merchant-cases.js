@@ -1,6 +1,6 @@
 /* Explicit queue, case and filter states; case actions are shared with direct case URLs. */
 (() => {
-  const { api, el, busy, friendlyError, motion } = window.Morrow;
+  const { api, el, busy, friendlyError, motion, signOut } = window.Morrow;
   let cases = [],
     selected = null,
     current = null,
@@ -460,15 +460,6 @@
     }
     render();
   });
-  el("sign-out").onclick = () =>
-    busy(el("sign-out"), async () => {
-      try {
-        await api("/api/v1/merchant/session/logout", { method: "POST" });
-        location.href = "/merchant/login";
-      } catch (error) {
-        visible("queue-error", true);
-        message("queue-error-text", error, "Sign out failed. Try again.");
-      }
-    });
+  el("sign-out").onclick = () => signOut(el("sign-out"));
   load();
 })();
