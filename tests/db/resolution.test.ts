@@ -19,6 +19,10 @@ test(
     const runtime = createPool(process.env.TEST_RUNTIME_DATABASE_URL ?? url!);
     try {
       await assertRuntimeRole(runtime);
+      await assert.rejects(
+        assertRuntimeRole(db),
+        /RESTRICTED_RUNTIME_ROLE_REQUIRED/,
+      );
       const fixture = await seedCase(db);
       const gateway: PaymentGateway = {
         getTransaction: async () => fixture.evidence,

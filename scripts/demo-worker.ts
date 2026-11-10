@@ -1,9 +1,15 @@
-import { createPool } from "../src/database.js";
+import { assertRuntimeRole, createPool } from "../src/database.js";
 import { DemoLessonWorker } from "../src/demo-lesson-worker.js";
 import { tenantMemoryFor } from "../src/lesson-factory.js";
 import { spawnSync } from "node:child_process";
 const once = process.argv.includes("--once");
 const pool = createPool(process.env.DATABASE_URL!);
+try {
+  await assertRuntimeRole(pool);
+} catch (error) {
+  await pool.end();
+  throw error;
+}
 // Invoked under the Morrow worker singleton lock. Per-payment shared-payer
 // lock also coordinates with every other authorized harness using this pool.
 do {
@@ -13,7 +19,6 @@ do {
       "-n",
       "/root/.config/kyami/testnet-wallets/locks/sui-test-2-testnet.lock",
       process.execPath,
-      "--env-file-if-exists=.env",
       "--import",
       "tsx",
       "scripts/demo-payment-once.ts",
