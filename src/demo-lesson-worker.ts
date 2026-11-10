@@ -32,6 +32,7 @@ export class DemoLessonWorker {
             operatorId: job.operator_id,
             role: "judge",
           });
+          if (!policy.grant_enabled) throw Error("POLICY_DENIED");
           if (policy.policy_version !== job.policy_version)
             throw Error("STALE_POLICY");
         });
@@ -40,7 +41,10 @@ export class DemoLessonWorker {
         scope.tenantConfig,
         scope.gateway,
       );
-      const current = await service.advance(job.tenant_id, job.lesson_id);
+      const current = await service.advance(
+        { tenantId: job.tenant_id, operatorId: job.operator_id, role: "judge" },
+        job.lesson_id,
+      );
       if (current.state === "FAILED") {
         await update("FAILED", "MEMORY_FAILED");
         return "FAILED";
@@ -66,12 +70,13 @@ export class DemoLessonWorker {
       await update("QUEUED");
       return current.state;
     } catch (error) {
-      const stale = error instanceof Error && error.message === "STALE_POLICY";
+      const code = error instanceof Error ? error.message : "";
+      const blocked = code === "STALE_POLICY" || code === "POLICY_DENIED";
       await update(
-        stale ? "FAILED" : "QUEUED",
-        stale ? "STALE_POLICY" : "MEMORY_PROVIDER_UNAVAILABLE",
+        blocked ? "FAILED" : "QUEUED",
+        blocked ? code : "MEMORY_PROVIDER_UNAVAILABLE",
       );
-      return stale ? "FAILED" : "UNKNOWN";
+      return blocked ? "FAILED" : "UNKNOWN";
     } finally {
       scope?.close();
     }

@@ -601,6 +601,8 @@ export class DemoJourneyService {
         actor.tenantId,
         async (db) => {
           const policy = await authorizeOperator(db, actor);
+          if (!policy.grant_enabled)
+            throw new DomainError("POLICY_DENIED", 403);
           const row = (
             await db.query(
               "SELECT l.*,j.retries FROM morrow.lessons l JOIN morrow.demo_lesson_jobs j ON j.tenant_id=l.tenant_id AND j.lesson_id=l.id WHERE l.tenant_id=$1 AND l.case_id=$2 AND j.state='FAILED' ORDER BY l.created_at DESC LIMIT 1",

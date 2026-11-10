@@ -33,7 +33,8 @@ test("isolated A requires explicit repair and lesson approvals; editable drafts,
   const suffix = crypto.randomUUID();
   let pending = true,
     stored = "",
-    freshClients = 0;
+    freshClients = 0,
+    rememberCalls = 0;
   const chain: DemoChain = {
     prepare: async (): Promise<ReservedIntent> => ({
       digest: crypto.randomUUID().replaceAll("-", "").replaceAll("0", "1"),
@@ -90,6 +91,7 @@ test("isolated A requires explicit repair and lesson approvals; editable drafts,
       },
       gateway: {
         remember: async (text) => {
+          rememberCalls++;
           stored = text;
           return { jobId: "job-" + suffix };
         },
@@ -207,7 +209,42 @@ test("isolated A requires explicit repair and lesson approvals; editable drafts,
       { code: "STALE_DRAFT" },
     );
     const memory = new DemoLessonWorker(db, scope);
+    await admin.query(
+      "UPDATE morrow.tenants SET grant_enabled=false WHERE id=$1",
+      [run.tenantId],
+    );
+    assert.equal(
+      (
+        await admin.query(
+          "SELECT policy_version FROM morrow.tenants WHERE id=$1",
+          [run.tenantId],
+        )
+      ).rows[0].policy_version,
+      1,
+      "test revokes grant without relying on a policy version bump",
+    );
+    assert.equal(await memory.runOne(approved.id), "FAILED");
+    assert.equal(rememberCalls, 0, "revoked policy must not reach Walrus");
+    await assert.rejects(journey.retryStorage(actor, key), {
+      code: "POLICY_DENIED",
+    });
+    const blocked = (
+      await admin.query(
+        "SELECT state,error_code FROM morrow.demo_lesson_jobs WHERE tenant_id=$1 AND lesson_id=$2",
+        [run.tenantId, approved.id],
+      )
+    ).rows[0];
+    assert.deepEqual(blocked, { state: "FAILED", error_code: "POLICY_DENIED" });
+    await admin.query(
+      "UPDATE morrow.tenants SET grant_enabled=true WHERE id=$1",
+      [run.tenantId],
+    );
+    await admin.query(
+      "UPDATE morrow.demo_lesson_jobs SET state='QUEUED',error_code=NULL,not_before=clock_timestamp() WHERE tenant_id=$1 AND lesson_id=$2",
+      [run.tenantId, approved.id],
+    );
     assert.equal(await memory.runOne(approved.id), "PENDING");
+    assert.equal(rememberCalls, 1);
     assert.notEqual((await journey.view(actor, key)).stage, "A_COMPLETE");
     pending = false;
     await admin.query(

@@ -18,9 +18,11 @@ test(
       const jobId = `fake_job_${f.caseId}`,
         blobId = `fake_blob_${f.caseId}`;
       let status: unknown = { job_id: jobId, status: "running" },
-        text = "";
+        text = "",
+        rememberCalls = 0;
       const gateway: MemoryGateway = {
         remember: async (value) => {
+          rememberCalls++;
           text = value;
           return { jobId };
         },
@@ -72,22 +74,42 @@ test(
         idempotencyKey: "lesson-proof-0001",
       });
       const approved = await lessons.approve(f.actor, lesson);
+      await admin.query(
+        "UPDATE morrow.tenants SET grant_enabled=false WHERE id=$1",
+        [f.actor.tenantId],
+      );
+      await assert.rejects(lessons.advance(f.actor, approved.id), {
+        code: "POLICY_DENIED",
+      });
+      assert.equal(rememberCalls, 0, "revoked policy blocks the Walrus write");
+      await assert.rejects(
+        lessons.approve(f.actor, {
+          ...lesson,
+          procedure: [...lesson.procedure, "ESCALATE_UNKNOWN"],
+        }),
+        { code: "POLICY_DENIED" },
+      );
+      await admin.query(
+        "UPDATE morrow.tenants SET grant_enabled=true WHERE id=$1",
+        [f.actor.tenantId],
+      );
       assert.equal(
-        (await lessons.advance(f.actor.tenantId, approved.id)).state,
+        (await lessons.advance(f.actor, approved.id)).state,
         "PENDING",
       );
+      assert.equal(rememberCalls, 1);
       await assert.rejects(
         lessons.verifyRecall(f.actor.tenantId, approved.id, gateway),
         { code: "MEMORY_NOT_COMPLETED" },
       );
       status = { job_id: jobId, status: "uploaded", blob_id: blobId };
       assert.equal(
-        (await lessons.advance(f.actor.tenantId, approved.id)).state,
+        (await lessons.advance(f.actor, approved.id)).state,
         "PENDING",
       );
       status = { job_id: jobId, status: "done", blob_id: blobId };
       assert.equal(
-        (await lessons.advance(f.actor.tenantId, approved.id)).state,
+        (await lessons.advance(f.actor, approved.id)).state,
         "COMPLETED",
       );
       const wrongRecall = {

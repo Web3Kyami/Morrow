@@ -26,6 +26,7 @@ export class LessonService {
       throw new DomainError("MEMORY_SCOPE_MISMATCH", 403);
     return tenantTransaction(this.pool, actor.tenantId, async (db) => {
       const a = await authorizeOperator(db, actor);
+      if (!a.grant_enabled) throw new DomainError("POLICY_DENIED", 403);
       if (a.policy_version !== lesson.policyVersion)
         throw new DomainError("STALE_POLICY");
       const source = await db.query(
@@ -75,38 +76,46 @@ export class LessonService {
       return row;
     });
   }
-  async advance(tenantId: string, id: string) {
-    const row = await this.load(tenantId, id);
+  async advance(actor: Actor, id: string) {
+    actorSchema.parse(actor);
+    const row = await this.load(actor.tenantId, id);
     if (["COMPLETED", "RECALL_VERIFIED", "FAILED"].includes(row.state))
       return { state: row.state as string };
     let jobId = row.job_id as string | null;
     if (!jobId) {
-      // Stable key reconciles a crash after provider acceptance but before local recording.
-      const accepted = await this.gateway.remember(
-        JSON.stringify(lessonSchema.parse(row.payload)),
-        row.submission_attempt
-          ? `${row.fingerprint}:retry:${row.submission_attempt}`
-          : row.fingerprint,
-      );
-      jobId = accepted.jobId;
-      await tenantTransaction(this.pool, tenantId, (db) =>
-        db.query(
+      // Keep the tenant policy lock until Walrus accepts the write. A policy
+      // revocation then either wins before this check or waits until the
+      // authorized, idempotent provider request is recorded.
+      jobId = await tenantTransaction(this.pool, actor.tenantId, async (db) => {
+        const current = await authorizeOperator(db, actor);
+        if (!current.grant_enabled) throw new DomainError("POLICY_DENIED", 403);
+        if (current.policy_version !== row.policy_version)
+          throw new DomainError("STALE_POLICY", 409);
+        // Stable key reconciles a crash after provider acceptance but before local recording.
+        const accepted = await this.gateway.remember(
+          JSON.stringify(lessonSchema.parse(row.payload)),
+          row.submission_attempt
+            ? `${row.fingerprint}:retry:${row.submission_attempt}`
+            : row.fingerprint,
+        );
+        await db.query(
           "UPDATE morrow.lessons SET state='ACCEPTED',job_id=$3 WHERE tenant_id=$1 AND id=$2 AND job_id IS NULL",
-          [tenantId, id, jobId],
-        ),
-      );
+          [actor.tenantId, id, accepted.jobId],
+        );
+        return accepted.jobId;
+      });
     }
     const raw = await this.gateway.status(jobId);
     const status = classifyMemoryJob(raw);
     if (status.jobId && status.jobId !== jobId)
       throw new DomainError("MEMORY_JOB_MISMATCH");
     const blobId = status.state === "COMPLETED" ? status.blobId : null;
-    await tenantTransaction(this.pool, tenantId, (db) =>
+    await tenantTransaction(this.pool, actor.tenantId, (db) =>
       db.query(
         `UPDATE morrow.lessons SET state=$3,blob_id=$4,
       completed_at=CASE WHEN $3='COMPLETED' THEN clock_timestamp() ELSE completed_at END
       WHERE tenant_id=$1 AND id=$2 AND state NOT IN ('COMPLETED','RECALL_VERIFIED','FAILED')`,
-        [tenantId, id, status.state, blobId],
+        [actor.tenantId, id, status.state, blobId],
       ),
     );
     return status;

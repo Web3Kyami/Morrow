@@ -458,7 +458,7 @@ export function createApp(
       const lessons = lessonWire(actor.tenantId);
       if (!lessons) throw new DomainError("MEMORY_UNAVAILABLE", 503);
       try {
-        return await lessons.service.advance(actor.tenantId, lessonId);
+        return await lessons.service.advance(actor, lessonId);
       } finally {
         lessons.close();
       }

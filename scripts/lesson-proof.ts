@@ -108,7 +108,7 @@ try {
   // Advance until COMPLETED (bounded polling).
   let status = { state: "APPROVED", jobId: "", blobId: null as string | null };
   for (let attempt = 0; attempt < 30; attempt++) {
-    const advanced = await service.advance(reservation.tenantId, lesson!.id);
+    const advanced = await service.advance(actor, lesson!.id);
     status = {
       state: advanced.state ?? "UNKNOWN",
       jobId: (advanced as { jobId?: string }).jobId ?? status.jobId,
