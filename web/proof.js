@@ -41,6 +41,8 @@
       : lesson
         ? `Lesson state: ${lesson.state}. A recorded blob and fresh-session recall are required.`
         : "No approved lesson is recorded for this run.";
+    el("proof-memory-blob-row").hidden = !remembered;
+    el("proof-memory-blob").textContent = remembered ? lesson.blobId : "";
     status(
       "proof-memory-state",
       remembered ? "Fresh recall verified · Testnet" : "Not verified",

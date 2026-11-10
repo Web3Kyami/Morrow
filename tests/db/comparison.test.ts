@@ -184,6 +184,14 @@ test(
       assert.ok(body.on.plan.includes("ESCALATE_UNKNOWN"));
       assert.equal(body.on.recall.status, "OK");
       assert.deepEqual(body.on.recall.blobIds, [blobId]);
+      assert.deepEqual(body.on.recall.provenance, [
+        {
+          blobId,
+          sourceCaseId: a.caseId,
+          appliesTo: "course",
+          policyVersion: 1,
+        },
+      ]);
       assert.equal(recallCalls, 1);
       // Genuine investigations persisted on target B.
       assert.ok(body.off.investigation.verdict);
@@ -234,6 +242,7 @@ test(
         payload: { caseBId },
       });
       assert.equal(incompatible.json().on.metrics.lessonsConsidered, 0);
+      assert.deepEqual(incompatible.json().on.recall.provenance, []);
       assert.equal(incompatible.json().comparison.outcome, "INCONCLUSIVE");
       await admin.query(
         "UPDATE morrow.tenants SET grant_enabled=false WHERE id=$1",

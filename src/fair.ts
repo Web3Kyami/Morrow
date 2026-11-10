@@ -400,6 +400,9 @@ export class FairComparisonService {
             return [
               {
                 blobId: row.blob_id as string,
+                sourceCaseId: parsed.data.sourceCaseId,
+                appliesTo: target.product_category,
+                policyVersion: parsed.data.policyVersion,
                 procedure: parsed.data.procedure,
               },
             ];
@@ -447,6 +450,14 @@ export class FairComparisonService {
           count: eligible.length,
           query,
           recalledAt,
+          provenance: eligible.map(
+            ({ blobId, sourceCaseId, appliesTo, policyVersion }) => ({
+              blobId,
+              sourceCaseId,
+              appliesTo,
+              policyVersion,
+            }),
+          ),
           namespace: scoped.tenantConfig.namespace,
           network: scoped.tenantConfig.network,
           accountId: scoped.tenantConfig.accountId,

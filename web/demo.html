@@ -144,6 +144,29 @@
               </li>
             </ol>
             <p class="lane-result" id="on-result">No result yet.</p>
+            <details id="on-evidence" class="lesson-provenance" hidden>
+              <summary>
+                Inspect recalled lesson <code id="on-blob-preview"></code>
+              </summary>
+              <dl>
+                <div>
+                  <dt>Blob ID</dt>
+                  <dd><code id="on-blob-id"></code></dd>
+                </div>
+                <div>
+                  <dt>Applies to</dt>
+                  <dd id="on-applicability"></dd>
+                </div>
+                <div>
+                  <dt>Current policy</dt>
+                  <dd id="on-policy"></dd>
+                </div>
+                <div>
+                  <dt>Fresh recall</dt>
+                  <dd id="on-recall"></dd>
+                </div>
+              </dl>
+            </details>
             <button id="run-on" class="btn" type="button" disabled>
               Run after baseline
             </button>
@@ -225,7 +248,12 @@
         <i class="active"></i><i></i><i></i>
       </div>
       <h2 id="review-title">Approve this repair?</h2>
-      <p id="review-description">Restore access to this order. No refund.</p>
+      <p id="review-description">
+        Why: matching payment + missing access. Policy must still pass.
+      </p>
+      <p id="review-freshness">
+        The latest access and policy are rechecked before any write.
+      </p>
       <dl class="review-facts">
         <div>
           <dt>Payment matched to this order</dt>
@@ -241,7 +269,7 @@
       </div>
       <p id="review-error" class="error-notice" role="alert" hidden></p>
       <p id="review-progress" role="status" hidden></p>
-      <div class="dialog-actions">
+      <div class="dialog-actions review-dialog-actions">
         <button id="reject" class="text-button danger" type="button">
           Reject</button
         ><button

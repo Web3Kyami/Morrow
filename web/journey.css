@@ -390,6 +390,14 @@
   line-height: 23px;
   color: var(--muted);
 }
+#review-description {
+  margin-bottom: 0;
+}
+#review-freshness {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 22px;
+}
 .journey-dialog .dialog-step {
   font-size: 14px;
   line-height: 20px;
@@ -417,7 +425,7 @@
   background: var(--primary);
 }
 .review-facts {
-  margin: 58px 0 28px;
+  margin: 28px 0 24px;
 }
 .review-facts dt {
   font-weight: 600;
@@ -569,6 +577,51 @@
   font-size: 15px;
   line-height: 22px;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.lesson-provenance {
+  width: 100%;
+  margin: 6px 0 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--navigation);
+  color: var(--ink);
+}
+.lesson-provenance summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  color: var(--primary);
+  font: 600 14px/20px var(--ui);
+  cursor: pointer;
+}
+.lesson-provenance summary code,
+.lesson-provenance dd code {
+  font-family: var(--data);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.lesson-provenance dl {
+  display: grid;
+  gap: 10px;
+  margin: 13px 0 0;
+}
+.lesson-provenance dl div {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 12px;
+}
+.lesson-provenance dt {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 19px;
+}
+.lesson-provenance dd {
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
   overflow-wrap: anywhere;
 }
 .comparison-lane .btn {
@@ -866,7 +919,7 @@
     line-height: 32px;
   }
   .review-facts {
-    margin-top: 32px;
+    margin-top: 24px;
   }
   .review-facts dt {
     font-size: 15px;
@@ -877,6 +930,31 @@
   .dialog-actions .btn {
     font-size: 14px;
     padding: 12px;
+  }
+  .review-dialog-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .review-dialog-actions .btn {
+    width: 100%;
+    flex: 0 0 auto;
+    min-height: 52px;
+  }
+  .review-dialog-actions #approve-repair {
+    order: 1;
+  }
+  .review-dialog-actions #cancel-review {
+    order: 2;
+  }
+  .review-dialog-actions #reject {
+    order: 3;
+    align-self: flex-start;
+    min-height: 44px;
+    margin: 0;
+    padding: 8px 0;
+  }
+  .review-dialog-actions #review-remember {
+    order: 1;
   }
   .comparison-contract {
     background: transparent;
@@ -918,6 +996,14 @@
     margin: auto 0 8px;
     font-size: 14px;
     line-height: 20px;
+  }
+  .lesson-provenance {
+    margin-bottom: 14px;
+    padding: 11px 12px;
+  }
+  .lesson-provenance dl div {
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 8px;
   }
   #comparison-outcome {
     margin-top: 46px;

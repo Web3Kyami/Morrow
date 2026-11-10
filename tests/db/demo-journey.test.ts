@@ -299,6 +299,7 @@ test("isolated A requires explicit repair and lesson approvals; editable drafts,
     );
     const proof = await journey.proof(actor, key);
     assert.equal(proof.a.lesson?.network, "testnet");
+    assert.ok(proof.a.lesson?.recalledAt);
     assert.equal(proof.c.status, "PASS");
     assert.equal(proof.c.payment.successfulTransaction, true);
     assert.equal(proof.c.payment.expectedAmountMist, "1000001");

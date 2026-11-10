@@ -964,6 +964,20 @@
     const recall = result?.on?.recall?.status;
     const noEligibleMemory = recall === "NO_ELIGIBLE_LESSON";
     const memoryUnavailable = recall === "UNAVAILABLE";
+    const blobId = result?.on?.recall?.blobIds?.[0] ?? "";
+    const target = result?.snapshot?.cases?.find(
+      (item) => item.id === result.targetCaseId,
+    );
+    const provenance =
+      result?.on?.recall?.provenance?.[0] ??
+      (blobId && result?.on?.metrics?.lessonsConsidered > 0 && target
+        ? {
+            blobId,
+            sourceCaseId: result.sourceCaseId,
+            appliesTo: target.product_category,
+            policyVersion: result.comparison.policyVersion,
+          }
+        : null);
     if (result) message("comparison-error");
     el("off-title").textContent = small
       ? "Normal investigation"
@@ -1011,10 +1025,41 @@
         ? "No approved memory was available to this run."
         : memoryUnavailable
           ? "Walrus did not return a confirmed recall."
-          : `${result.on.metrics.steps} steps · ${result.on.metrics.lessonsConsidered} verified lesson(s)`
+          : `${result.on.metrics.steps} steps · ${result.on.metrics.lessonsConsidered} ${result.on.metrics.lessonsConsidered === 1 ? "verified lesson" : "verified lessons"}`
       : small
         ? "Run baseline first · Blob ID and benefit unverified"
         : "Recall and real benefit are unverified";
+    const evidence = el("on-evidence");
+    const showEvidence =
+      result?.on?.recall?.status === "OK" &&
+      !!provenance &&
+      !!blobId &&
+      provenance.sourceCaseId === result.sourceCaseId &&
+      provenance.policyVersion === result.comparison.policyVersion &&
+      provenance.appliesTo === target?.product_category;
+    evidence.hidden = !showEvidence;
+    el("on-blob-preview").textContent = showEvidence
+      ? `${blobId.slice(0, 10)}…${blobId.slice(-6)}`
+      : "";
+    el("on-blob-id").textContent = showEvidence ? blobId : "";
+    const categoryLabels = {
+      course: "course access",
+      download: "digital downloads",
+      subscription: "subscriptions",
+      pass: "passes",
+      service: "services",
+    };
+    const applicableTo =
+      categoryLabels[provenance?.appliesTo] ?? provenance?.appliesTo;
+    el("on-applicability").textContent = showEvidence
+      ? `The approved Case A lesson passed scope checks for ${applicableTo}.`
+      : "";
+    el("on-policy").textContent = showEvidence
+      ? `Policy version ${provenance.policyVersion} matched the current policy.`
+      : "";
+    el("on-recall").textContent = showEvidence
+      ? `Exact lesson content was freshly recalled from Walrus ${result.on.recall.network}.`
+      : "";
     const outcome = result?.comparison.outcome;
     message(
       "comparison-outcome",
