@@ -604,6 +604,8 @@ dt {
   min-height: 100svh;
 }
 .login-brand {
+  display: flex;
+  flex-direction: column;
   background: var(--primary);
   color: white;
   padding: 55px 60px;
@@ -615,16 +617,34 @@ dt {
 .login-brand .brand img {
   filter: brightness(0) invert(1);
 }
-.login-main {
-  padding: 174px 12% 50px 11%;
+.login-brand-copy {
+  margin-top: clamp(140px, 21vh, 190px);
 }
-.login-main .page-title {
-  font-size: 35px;
+.login-brand-title {
+  max-width: 460px;
+  margin: 0;
+  color: white;
+  font-size: clamp(30px, 3vw, 44px);
   font-weight: 600;
+  line-height: 1.12;
 }
-.login-main .lede {
-  font-size: 17px;
-  margin: 18px 0 68px;
+.login-brand-accent {
+  display: block;
+  width: 52px;
+  height: 4px;
+  margin-top: 28px;
+  border-radius: 999px;
+  background: var(--signature);
+}
+.login-main {
+  display: flex;
+  align-items: center;
+  padding: 48px 12%;
+}
+.login-content {
+  width: 100%;
+  max-width: 620px;
+  margin: auto 0;
 }
 .login-form label.field {
   margin-bottom: 36px;
@@ -640,12 +660,12 @@ dt {
 .login-main #privy-root .btn {
   width: 100%;
   min-height: 54px;
-  margin-top: 42px;
+  margin-top: 0;
 }
-.login-main > .hint {
-  margin-top: 30px;
+.login-content > .hint {
+  margin-top: 24px;
 }
-.login-main > .hint a {
+.login-content > .hint a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -672,7 +692,10 @@ dt {
     padding: 40px 32px;
   }
   .login-main {
-    padding: 120px 40px 40px;
+    padding: 40px 32px;
+  }
+  .login-brand-copy {
+    margin-top: clamp(120px, 18vh, 170px);
   }
 }
 @media (max-width: 767px) {
@@ -815,19 +838,31 @@ dt {
     margin-top: 24px;
   }
   .login-page {
-    display: block;
+    display: flex;
+    flex-direction: column;
   }
   .login-brand {
     padding: 20px;
+    gap: 22px;
+  }
+  .login-brand-copy {
+    margin-top: 0;
+  }
+  .login-brand-title {
+    font-size: 24px;
+  }
+  .login-brand-accent {
+    width: 42px;
+    height: 3px;
+    margin-top: 14px;
   }
   .login-main {
+    flex: 1;
+    align-items: flex-start;
     padding: 36px 20px;
   }
-  .login-main .page-title {
-    font-size: 30px;
-  }
-  .login-main .lede {
-    margin-bottom: 32px;
+  .login-content {
+    margin: 0;
   }
   .login-form .btn {
     margin-top: 12px;
@@ -1079,9 +1114,6 @@ dialog .actions {
 .presenter-copy > .actions {
   margin-top: 56px;
 }
-.login-main > .page-title {
-  margin-bottom: 80px;
-}
 .help-form .form-heading {
   margin-bottom: 56px;
 }
@@ -1161,9 +1193,6 @@ dialog .actions {
 @media (max-width: 767px) {
   .presenter-copy > .actions {
     margin-top: 32px;
-  }
-  .login-main > .page-title {
-    margin-bottom: 36px;
   }
   .customer-status-page .topbar-inner {
     border-bottom: 1px solid var(--border);
